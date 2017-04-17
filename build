@@ -1,0 +1,4 @@
+#!/bin/bash
+pulp browserify -j 8 -O > out.js
+uglifyjs out.js --noerr --screw-ie8 -c -m > bundle.js
+rm out.js

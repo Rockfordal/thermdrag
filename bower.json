@@ -1,0 +1,11 @@
+{
+  "name": "purescript-webpack-example",
+  "private": true,
+  "dependencies": {
+    "purescript-console": "^3.0.0",
+    "purescript-react-dom": "^3.0.0",
+    "purescript-react": "^3.0.0",
+    "purescript-thermite": "^4.1.0",
+    "purescript-psci-support": "^3.0.0"
+  }
+}
