@@ -8,14 +8,14 @@ import Prelude ((#), (+), (-), (==))
 
 
 getcircle :: State -> Int -> Circle
-getcircle state this =
+getcircle state i =
   case state.drag of
-    Nothing -> state.circles !! this # fromMaybe defaultCircle
+    Nothing -> thiscircle
     Just { start, current, index } ->
-      let
-        cirkel = state.circles !! this # fromMaybe defaultCircle
-        x = if this == index then cirkel.x + current.x - start.x else cirkel.x
-        y = if this == index then cirkel.y + current.y - start.y else cirkel.y
-      in
-        cirkel { x = x, y = y }
-
+      if index == i then
+        thiscircle { x = thiscircle.x + current.x - start.x
+                   , y = thiscircle.y + current.y - start.y }
+      else
+        thiscircle
+  where
+  thiscircle = state.circles !! i # fromMaybe defaultCircle
