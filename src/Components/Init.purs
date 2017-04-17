@@ -1,9 +1,9 @@
 module Components.Init where
 
+import Prelude
 import Components.Typer (State, Circle)
 import Data.Array ((!!), (..))
 import Data.Maybe (Maybe(Nothing), fromMaybe)
-import Prelude -- (bind, pure, (#), ($), (*), (+))
 
 
 initialState :: State
