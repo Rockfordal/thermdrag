@@ -1,19 +1,30 @@
 module Components.Init where
 
 import Components.Typer (State, Circle)
-import Data.Maybe (Maybe(Nothing))
+import Data.Array ((!!), (..))
+import Data.Maybe (Maybe(Nothing), fromMaybe)
+import Prelude -- (bind, pure, (#), ($), (*), (+))
 
 
 initialState :: State
 initialState =
   { name: "."
   , drag: Nothing
-  -- , connections: [  ]
-  , circles: [ { x: 30,  y: 50, r: 30, c: "red" }
-             , { x: 100, y: 50, r: 30, c: "blue" }
-             , { x: 170, y: 50, r: 30, c: "green" }
-             , { x: 240, y: 50, r: 30, c: "yellow" }
-             ] }
+  , circles: sampleCircles
+  }
+
+
+sampleCircles :: Array Circle
+sampleCircles = do
+  x <- values
+  y <- values
+  pure { x: mm x, y: mm y, r: 30, c: findcolor x }
+  where
+  colors = ["red", "green", "blue", "yellow", "pink"]
+  values = 1 .. 5
+  mm = (\n -> 30 + n * 70 ) 
+  findcolor x = colors !! x # fromMaybe "black"
+
 
 defaultCircle :: Circle
 defaultCircle = { x:1, y:1, r:1, c: "white" } 
