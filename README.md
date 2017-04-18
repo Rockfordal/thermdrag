@@ -11,7 +11,7 @@ _Testing some SVG drag and drop_
 _And other stuff_
 _Im using Visual Studio Code and Purescript 0.11.4 built from source, but 0.11.3 also worked fine_
 
-![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/master/dragndrop.png)
+![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/master/images/dragndrop.png)
 
 #### Installation Linux/Osx
 * npm install
@@ -21,3 +21,5 @@ _Im using Visual Studio Code and Purescript 0.11.4 built from source, but 0.11.3
 #### Sample Deployment
 * ./build
 * ./serve
+
+![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/master/images/code.png)
