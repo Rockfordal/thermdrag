@@ -6,7 +6,6 @@ type State =
   { name :: String
   , drag :: Maybe Drag
   , circles :: Array Circle
-  -- , connections :: Array Connection
   }
 
 type Connection = 
@@ -33,7 +32,7 @@ type Position =
   }
 
 data Action
-  = Rubbe
+  = KABOOM
   | DragStart Int Position
   | DragAt Position
   | DragEnd

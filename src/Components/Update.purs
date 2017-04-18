@@ -10,9 +10,9 @@ import Thermite (PerformAction, cotransform)
 
 
 performAction :: PerformAction _ State _ Action
-performAction Rubbe _ _ =
+performAction KABOOM _ _ =
   void (cotransform (\state ->
-    state { name = "rubbe " }))
+    state { name = "Holy Cow!!! " }))
 
 performAction (DragStart i { x, y }) _ _ =
   void (cotransform (\state -> 

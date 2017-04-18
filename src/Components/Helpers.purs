@@ -1,21 +1,17 @@
 module Components.Helpers where
 
-import Prelude ((#), (+), (-), (==))
-import Components.Init (stupidCircle)
+import Prelude ((+), (-), (==))
 import Components.Typer (Circle, State)
-import Data.Array ((!!))
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.Maybe (Maybe(Nothing, Just))
 
 
-patchcircle :: State -> Int -> Circle
-patchcircle state i =
+patchcircle :: State -> Int -> Circle -> Circle
+patchcircle state i oldcircle =
   case state.drag of
-    Nothing -> circle
+    Nothing -> oldcircle
     Just { start, current, index } ->
       if index == i then
-        circle { x = circle.x + current.x - start.x
-               , y = circle.y + current.y - start.y }
+        oldcircle { x = oldcircle.x + current.x - start.x
+                  , y = oldcircle.y + current.y - start.y }
       else
-        circle
-  where
-  circle = state.circles !! i # fromMaybe stupidCircle
+        oldcircle
