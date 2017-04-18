@@ -5,8 +5,8 @@ import React.DOM as R
 import React.DOM.SVG as S
 import Thermite as T
 import Components.Common (linje)
-import Components.Helpers (getcircle)
-import Components.Init (defaultCircle)
+import Components.Helpers (patchcircle)
+import Components.Init (stupidCircle)
 import Components.Typer (Action(..), State, Circle)
 import Data.Array (mapWithIndex, (!!))
 import Data.Int (floor)
@@ -33,8 +33,8 @@ render dispatch _ state _ =
                  [ R.text "Tryck då!" ]
   ]
   where
-    b1 = state.circles !! 1 # fromMaybe defaultCircle
-    b2 = state.circles !! 2 # fromMaybe defaultCircle
+    b1 = state.circles !! 1 # fromMaybe stupidCircle
+    b2 = state.circles !! 2 # fromMaybe stupidCircle
 
 
 viewcircle :: State -> _ -> Int -> Circle -> ReactElement
@@ -45,8 +45,8 @@ viewcircle state dispatch index circle =
     , radius cc.r
     , fill cc.c
     , onMouseDown \e ->
-      dispatch $ DragStart index { x: e.pageX # floor
-                                 , y: e.pageY # floor }
-    ] [ ] 
-    where cc = getcircle state index
+      dispatch $ DragStart index
+                           { x: e.pageX # floor
+                           , y: e.pageY # floor } ] [ ] 
+    where cc = patchcircle state index
 

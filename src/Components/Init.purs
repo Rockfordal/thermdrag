@@ -1,6 +1,6 @@
 module Components.Init where
 
-import Prelude
+import Prelude ((#), (+), (*), bind, pure)
 import Components.Typer (State, Circle)
 import Data.Array ((!!), (..))
 import Data.Maybe (Maybe(Nothing), fromMaybe)
@@ -26,6 +26,6 @@ sampleCircles = do
   findcolor x = colors !! x # fromMaybe "black"
 
 
-defaultCircle :: Circle
-defaultCircle = { x:1, y:1, r:1, c: "white" } 
+stupidCircle :: Circle
+stupidCircle = { x:1, y:1, r:1, c: "white" } 
 
