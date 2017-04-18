@@ -37,12 +37,3 @@ data Action
   | DragStart Int Position
   | DragAt Position
   | DragEnd
-
-
--- patches
---   nodes      
---     eval ""
---     connections
---       inputs [("numbera", Nothing),
---               ("numberb", Nothing)]
---       outputs [("resultat", Nothing)]
