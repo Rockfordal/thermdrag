@@ -1,4 +1,9 @@
 #!/bin/bash
-pulp browserify -j 8 -O > out.js
+pulp browserify -j 4 -O > out.js
+
+#1. minify:
 uglifyjs out.js --noerr --screw-ie8 -c -m > bundle.js
 rm out.js
+
+#2 dont minify:
+#mv out.js bundle.js
