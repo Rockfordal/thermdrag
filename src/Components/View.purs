@@ -22,6 +22,7 @@ render state =
           [ HH.h1_ [ HH.text "Hello there" ]
           , HH.button
             [ HP.title label
+            , HP.class_ (H.ClassName "btn btn-success")
             , HE.onClick (HE.input_ Toggle)
             ]
             [ HH.text label ]
