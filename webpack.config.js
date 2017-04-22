@@ -4,23 +4,19 @@ const isWebpackDevServer = process.argv.filter(a => path.basename(a) === 'webpac
 const isWatch = process.argv.filter(a => a === '--watch').length
 
 module.exports = {
-  // debug: true,
   devtool: 'eval-source-map',
   entry: './src/Main.purs',
-  // entry: './src/Example.purs',
-
   devServer: {
     contentBase: '.',
+    // host: '46.162.127.62',
     port: 3000,
     stats: 'errors-only'
   },
-
   output: {
     path: __dirname,
     pathinfo: true,
     filename: 'bundle.js'
   },
-
   module: {
     loaders: [
       {
@@ -47,12 +43,6 @@ module.exports = {
       },
     ]
   },
-
-  // resolve: {
-    // modulesDirectories: [ 'node_modules', 'bower_components' ],
-    // extensions: [ '', '.purs', '.js']
-  // },
-
   plugins: isWebpackDevServer || !isWatch ? [] : [
     function(){
       this.plugin('done', function(stats){
@@ -60,4 +50,8 @@ module.exports = {
       });
     }
   ]
+  //, resolve: {
+    // modulesDirectories: [ 'node_modules', 'bower_components' ],
+    // extensions: [ '', '.purs', '.js']
+  // },
 };
