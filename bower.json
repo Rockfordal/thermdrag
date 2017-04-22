@@ -4,6 +4,9 @@
   "dependencies": {
     "purescript-console": "^3.0.0",
     "purescript-psci-support": "^3.0.0",
-    "purescript-halogen": "^2.0.0"
+    "purescript-halogen": "^2.0.0",
+    "purescript-dom": "^4.2.0",
+    "purescript-websocket-simple": "^1.0.1",
+    "purescript-var": "^1.0.0"
   }
 }
