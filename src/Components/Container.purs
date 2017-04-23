@@ -7,6 +7,7 @@ import Control.Coroutine.Aff as CRA
 import Halogen as H
 import Halogen.Aff as HA
 import WebSocket as WS
+import Network.HTTP.Affjax as AX
 import Components.Log (Message)
 import Control.Coroutine (Await)
 import Control.Monad.Aff (Aff)
@@ -28,9 +29,10 @@ wsProducer
   :: forall eff
    . WS.Connection
   -> CR.Producer String (Aff (avar :: AVAR, err :: EXCEPTION, ws :: WS.WEBSOCKET | eff)) Unit
-wsProducer (WS.Connection socket) = CRA.produce \emit -> do
-  socket.onmessage $= \event -> do
-    emit $ Left $ WS.runMessage (WS.runMessageEvent event)
+wsProducer (WS.Connection socket) =
+  CRA.produce \emit -> do
+    socket.onmessage $= \event -> do
+      emit $ Left $ WS.runMessage (WS.runMessageEvent event)
 
 -- A consumer coroutine that takes the `query` function from our component IO
 -- record and sends `AddMessage` queries in when it receives inputs from the
@@ -39,9 +41,10 @@ wsConsumer
   :: forall eff
    . (Log.Query ~> Aff (HA.HalogenEffects eff))
   -> CR.Consumer String (Aff (HA.HalogenEffects eff)) Unit
-wsConsumer query = CR.consumer \msg -> do
-  query $ H.action $ Log.AddMessage msg
-  pure Nothing
+wsConsumer query =
+  CR.consumer \msg -> do
+    query $ H.action $ Log.AddMessage msg
+    pure Nothing
 
 -- A consumer coroutine that takes output messages from our component IO
 -- and sends them using the websocket
@@ -58,24 +61,26 @@ wsSender :: forall eff t3 t4
 wsSender (WS.Connection socket) = CR.consumer \msg -> do
   case msg of
     Log.OutputMessage msgContents ->
-      liftEff $ socket.send (WS.Message msgContents)
+      do
+        text <- pure $ """{ "username":"andersl","payload":"""
+                    <> msgContents
+                    <> ""","roomname":"Arduino","type":"msg"}"""
+        liftEff $ socket.send (WS.Message text)
   pure Nothing
 
 
-containerapp :: Eff (HA.HalogenEffects (ws :: WS.WEBSOCKET, err :: EXCEPTION)) Unit
+containerapp :: Eff (HA.HalogenEffects (ws :: WS.WEBSOCKET, ajax :: AX.AJAX, err :: EXCEPTION)) Unit
 containerapp = do
---   let url = "ws://echo.websocket.org"
---   let url = "ws://localhost:4000"
-  let url = "ws://46.162.127.62:4500"
-  connection <- WS.newWebSocket (WS.URL url) []
+  let url = "ws://46.162.127.62:4000"
+  conn <- WS.newWebSocket (WS.URL url) []
   HA.runHalogenAff do
     body <- HA.awaitBody
     io <- runUI Log.component unit body
 
     -- The wsSender consumer subscribes to all output messages from our component
-    io.subscribe $ wsSender connection
+    io.subscribe $ wsSender conn
         
     -- Connecting the consumer to the producer initializes both,
     -- feeding queries back to our component as messages are received.
-    CR.runProcess (wsProducer connection CR.$$ wsConsumer io.query)
+    CR.runProcess (wsProducer conn CR.$$ wsConsumer io.query)
 
