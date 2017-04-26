@@ -22,6 +22,7 @@ data Query a
   = SetUsername String a
   | MakeRequest a
 
+
 ui :: forall eff. H.Component HH.HTML Query Unit Void (Aff (ajax :: AX.AJAX | eff))
 ui =
   H.component
@@ -75,6 +76,7 @@ ui =
       response <- H.liftAff $ AX.get ("https://api.github.com/users/" <> username)
       H.modify (_ { loading = false, result = Just response.response })
       pure next
+
 
 -- | Run the app
 ajaxapp :: Eff (HA.HalogenEffects (ajax :: AX.AJAX)) Unit

@@ -1,0 +1,20 @@
+-- rekvest :: Json -> AffjaxRequest Json
+-- rekvest r = AX.defaultRequest
+--             { url = fireUrl
+--             , method = Left POST
+--             -- , method = AX.post
+--             -- , headers = [ ContentType (MediaType "application/json") ]
+--             , headers = [ContentType applicationJSON]
+--             , content = Just r
+--             }
+
+-- login1 :: Cred
+-- login1 = Cred { username: "andersl", password: "mittpass" }
+
+-- payload :: Json
+-- payload = encodeJson login1
+
+-- testa = launchAff $ do
+--   let payload = encodeJson $ Cred { username: "andersl", password: "egilal" }
+--   res <- H.liftAff $ AX.post fireUrl payload
+--   liftEff $ log $ "POST response: " <> res.response

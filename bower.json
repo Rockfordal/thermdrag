@@ -8,6 +8,8 @@
     "purescript-dom": "^4.2.0",
     "purescript-websocket-simple": "^1.0.1",
     "purescript-var": "^1.0.0",
-    "purescript-affjax": "^4.0.0"
+    "purescript-affjax": "^4.0.0",
+    "purescript-media-types": "^3.0.0",
+    "purescript-argonaut-codecs": "^3.0.1"
   }
 }

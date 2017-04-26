@@ -8,18 +8,26 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Network.HTTP.Affjax as AX
 import Control.Monad.Aff (Aff)
-import DOM.HTML.HTMLElement (offsetHeight)
-import Data.Maybe (Maybe(..))
-import Halogen (liftEff)
-import Network.HTTP.Affjax (AJAX)
-import Network.HTTP.Affjax.Request (toRequest)
-import Network.HTTP.Affjax.Response (ResponseType(..))
+import Control.Monad.Except (runExcept)
+import Data.Argonaut.Core (jsonEmptyObject)
+import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=), (~>))
+import Data.Either (Either(Right))
+import Data.Foreign (readString)
+import Data.Foreign.Index (readProp)
+import Data.Maybe (Maybe(Nothing, Just))
+-- import Control.Alt ((<|>))
+-- -- import Control.Monad.Aff.Class (liftAff)
+-- import Control.Monad.Eff.Console (log)
+-- import Network.HTTP.Affjax (AJAX, AffjaxRequest, affjax, defaultRequest)
+-- import Network.HTTP.Affjax.Request (class Requestable, RequestContent, toRequest)
+-- import Network.HTTP.Affjax.Response (ResponseType(..))
 
 type State =
   { messages :: Array String
   , inputText :: String
   , username :: String
   , password :: String
+  , token :: Maybe String
   }
 
 data Query a
@@ -27,16 +35,17 @@ data Query a
   | UpdateUsername String a
   | UpdatePassword String a
   | UpdateInputText String a
+  | JoinRoom String a
   | SendLogin a
   | SendMessage a
 
 data Message
   = OutputMessage String                 
+  | OutputJoinRoom String
+  | SetToken String                 
 
 
---ui :: forall eff. H.Component HH.HTML Query Unit Void (Aff (ajax :: AX.AJAX | eff))
---component :: forall m. H.Component HH.HTML Query Unit Message m
-component :: forall eff. H.Component HH.HTML Query Unit Message (Aff (ajax :: AX.AJAX))
+component :: forall eff. H.Component HH.HTML Query Unit Message (Aff (ajax :: AX.AJAX | eff))
 component =
   H.component
     { initialState: const initialState
@@ -50,6 +59,7 @@ component =
   initialState = { messages: []
                  , username: "andersl"
                  , password: ""
+                 , token: Nothing
                  , inputText: ""
                  }
 
@@ -82,11 +92,12 @@ component =
       , HH.button
           [ HE.onClick (HE.input_ SendMessage) ]
           [ HH.text "Skicka meddelande" ]
+      , HH.button
+          [ HE.onClick (HE.input_ (JoinRoom state.inputText)) ]
+          [ HH.text "Join Room" ]
       ]
 
-  --eval :: Query ~> H.ComponentDSL State Query Message m
-  --eval :: Query ~> H.ComponentDSL State Query Void (Aff (ajax :: AX.AJAX | eff))
-  eval :: Query ~> H.ComponentDSL State Query Message (Aff (ajax :: AX.AJAX))
+  eval :: Query ~> H.ComponentDSL State Query Message (Aff (ajax :: AX.AJAX | eff))
   eval (AddMessage msg next) = do
     let incomingMessage = "Received: " <> msg
     H.modify \st -> st { messages = st.messages `A.snoc` incomingMessage }
@@ -99,41 +110,54 @@ component =
       { messages = st'.messages `A.snoc` ("Sending: " <> outgoingMessage)
       , inputText = "" }
     pure next              
-  eval (SendLogin next) = do
-    --username <- H.gets _.username
-    --result <- getsome
-    --let response = result.response
-    --H.raise $ OutputMessage "sent"
-    --H.modify (_ { password = "" })
-    pure next
   eval (UpdateUsername text next) = do
     H.modify (_ { username = text })
     pure next
   eval (UpdatePassword text next) = do
-    H.modify (_ { username = text })
+    H.modify (_ { password = text })
     pure next
   eval (UpdateInputText text next) = do
     H.modify (_ { inputText = text })
     pure next
+  eval (JoinRoom room next) = do
+    H.raise $ OutputJoinRoom room
+    pure next
+  eval (SendLogin next) = do
+    username <- H.gets _.username
+    password <- H.gets _.password
+    let payload = encodeJson $ Cred { username: username, password: password }
+    result <- H.liftAff $ AX.post fireUrl payload
+    let x = case runExcept $ readProp "access_token" result.response of
+              Right fs ->
+                case runExcept $ readString fs of
+                  Right s -> Just s
+                  _ -> Nothing
+              _ -> Nothing
+    case x of
+      Just msg -> do
+        H.modify (_ { token = x })
+        H.raise $ SetToken msg
+      Nothing ->
+        H.modify (_ { token = Nothing })
+    pure next
 
-{-
-   getsome :: forall t2 t4 t5.
-      MonadAff
-      ( ajax :: AJAX
-      | t5
-      )
-      t2
-      => Respondable t4 => t2
-                            { status :: StatusCode
-                            , headers :: Array ResponseHeader
-                            , response :: t4
-                            }
--}
-                            
-getsome = H.liftAff (AX.get fireUrl)
+-- let x = case runExcept (keys result.response ) of
+--           Right txt -> joinWith " " txt
+--           _    -> "---"
+
+-- type MyResponse = { access_token :: String, expiration :: String }
+
+-- gettoken :: forall r. { access_token :: String, expiration :: String | r } -> String
+-- gettoken t = t.access_token
+
+data Cred = Cred { username :: String, password :: String }
+
+instance encodeJsonCred :: EncodeJson Cred where
+  encodeJson (Cred cred)
+    =  "username" := cred.username
+    ~> "password" := cred.password
+    ~> jsonEmptyObject
 
 fireUrl :: String
-fireUrl = "http://fire:4000/api/login"
+fireUrl = "http://localhost:8081/api/login"
 
-payload :: String
-payload = "123"
