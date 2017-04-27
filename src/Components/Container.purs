@@ -5,7 +5,6 @@ import Components.Base as Base
 import Control.Coroutine as CR
 import Control.Coroutine.Aff as CRA
 import Halogen.Aff as HA
-import Network.HTTP.Affjax (AJAX)
 import WebSocket as WS
 import Components.Typer (wsUrl)
 import Control.Monad.Aff (Aff)
@@ -15,8 +14,9 @@ import Control.Monad.Eff.Exception (EXCEPTION)
 import Control.Monad.Eff.Var (($=))
 import Data.Either (Either(..))
 import Data.Maybe (Maybe(..))
-import Halogen (liftEff)
+import Halogen (action, liftEff)
 import Halogen.VDom.Driver (runUI)
+import Network.HTTP.Affjax (AJAX)
 
 -- A producer coroutine that emits messages that arrive from the websocket.
 wsProducer
@@ -28,20 +28,18 @@ wsProducer (WS.Connection socket) =
     socket.onmessage $= \event -> do
       emit $ Left $ WS.runMessage (WS.runMessageEvent event)
 
--- A consumer coroutine that takes the `query` function from our component IO
--- record and sends `AddMessage` queries in when it receives inputs from the
--- producer.
+-- Consumer coroutine takes the `query` function from our component IO
+-- record and sends `AddMessage` queries in when it receives inputs from producer
 wsConsumer
   :: forall eff
    . (Base.Query ~> Aff (HA.HalogenEffects eff))
   -> CR.Consumer String (Aff (HA.HalogenEffects eff)) Unit
 wsConsumer query =
   CR.consumer \msg -> do
-    -- query $ H.action $ Base.AddMessage msg
+    query $ action $ Base.IncomingMessage msg
     pure Nothing
 
--- A consumer coroutine that takes output messages from our component IO
--- and sends them using the websocket
+-- Consumer coroutine takes output messages from our component IO, sends with websocket
 wsSender
   :: forall eff
    . WS.Connection
@@ -51,12 +49,6 @@ wsSender (WS.Connection socket) = CR.consumer \msg -> do
     Base.OutputMessage msgContents -> do
         text <- pure $ msgContents
         liftEff $ socket.send (WS.Message text)
-    -- Base.OutputJoinRoom room -> do
-    --     text <- pure $ """{"type":"join","roomname":""" <> "\"" <> room <> "\"" <> "}"
-    --     liftEff $ socket.send (WS.Message text)
-  --   Login.SetToken token -> do
-  --       text <- pure $ token
-  --       liftEff $ socket.send (WS.Message text)
   pure Nothing
 
 containerapp :: Eff (HA.HalogenEffects (ws :: WS.WEBSOCKET, ajax :: AJAX, err :: EXCEPTION)) Unit
