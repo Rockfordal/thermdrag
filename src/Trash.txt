@@ -18,3 +18,17 @@
 --   let payload = encodeJson $ Cred { username: "andersl", password: "egilal" }
 --   res <- H.liftAff $ AX.post fireUrl payload
 --   liftEff $ log $ "POST response: " <> res.response
+
+-- let x = case runExcept (keys result.response ) of
+--           Right txt -> joinWith " " txt
+--           _    -> "---"
+
+-- type MyResponse = { access_token :: String, expiration :: String }
+
+-- gettoken :: forall r. { access_token :: String, expiration :: String | r } -> String
+-- gettoken t = t.access_token
+
+
+-- ui = H.lifecycleParentComponent
+--   { initializer: Just (H.action Initialize)
+--   , finalizer:   Just (H.action Finalize)
