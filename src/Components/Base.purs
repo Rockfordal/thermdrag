@@ -8,7 +8,7 @@ import Halogen.HTML.Events as HE
 import Control.Monad.Aff (Aff)
 import Data.Either.Nested (Either2)
 import Data.Functor.Coproduct.Nested (Coproduct2)
-import Data.Maybe (Maybe(Nothing), fromMaybe)
+import Data.Maybe (Maybe(Nothing))
 import Halogen.Component.ChildPath (cp1, cp2)
 import Halogen.HTML (HTML, div_, slot')
 import Network.HTTP.Affjax (AJAX)
@@ -26,10 +26,6 @@ data Message
 
 type ChildQuery = Coproduct2 Login.Query Chat.Query
 type ChildSlot = Either2 Unit Unit 
-
--- data Slot = LoginSlot | ChatSlot
--- derive instance eqLoginSlot  :: Eq Slot
--- derive instance ordLoginSlot :: Ord Slot
 
 type BaseEff eff = Aff (ajax :: AJAX | eff)
 
@@ -50,13 +46,13 @@ component =
   render state =
     div_
       [ slot' cp1 unit Login.component unit (HE.input HandleLogin)
-      , slot' cp2 unit Chat.component  unit (HE.input HandleChat)
+      , slot' cp2 unit Chat.component  ""   (HE.input HandleChat)
       ]
 
   eval :: Query ~> H.ParentDSL State Query ChildQuery ChildSlot Message (BaseEff eff)
   eval (IncomingMessage text next) = do
-    let incomingMessage = "Received: " <> text
-    -- x <- H.query cp2 (H.request (Chat.AddMessage))
+    let msgtext = "Received: " <> text
+    s <- H.query' cp2 unit (H.request (Chat.AddMessage msgtext))
     pure next
   eval (HandleLogin (Login.GotToken tokstr) next) = do
     H.raise $ OutputMessage tokstr

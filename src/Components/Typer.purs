@@ -19,4 +19,4 @@ module Components.Typer where
 -- loginUrl = baseUrl <> "/api/login"
 
 wsUrl :: String
-wsUrl = "ws://46.162.127.62:4000"
+wsUrl = "ws://46.162.127.62:8081"
