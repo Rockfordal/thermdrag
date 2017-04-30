@@ -15,6 +15,7 @@ type State =
 
 data Input a
   = UpdateInputText String a
+  -- | HandleLogin Login.Message a
 
 data Message
   = SetPage String                 
@@ -44,6 +45,7 @@ ui =
             ] [ text "SuperChat" ]
         , ul [ classes [ B.navbarNav, B.nav, B.navTabs] ]
           (map link ["Sessions", "Chat"])
+      -- , slot' pathToLogin  Login.Slot  Login.ui  unit (HE.input HandleLogin)
         -- , case muser of
         --        Nothing ->
         --            H.ul [ P.classes [ B.nav, B.navbarNav, B.navTabs, B.navbarRight ] ]
@@ -64,4 +66,7 @@ ui =
   eval (UpdateInputText text next) = do
     modify (_ { dummy = true })
     pure next
+  -- eval (HandleLogin (Login.GotToken token) next) = do
+  --   H.raise $ OutputMessage token
+  --   pure next
 

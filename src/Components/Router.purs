@@ -11,13 +11,13 @@ import Halogen.HTML.Events as HE
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff)
 import Control.Monad.State.Class (modify)
-import Data.Either.Nested (Either4)
+import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct (Coproduct)
-import Data.Functor.Coproduct.Nested (Coproduct4)
+import Data.Functor.Coproduct.Nested (Coproduct3)
 import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Halogen (Component)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3, cp4)
+import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.HTML (HTML, a, div_, h1_, li_, slot', text, ul_)
 import Routing (matchesAff)
 import Routing.Match (Match)
@@ -27,7 +27,6 @@ data Input a
   = Goto Routes a
   | IncomingMessage String a
   | HandleNavbar Navbar.Message a
-  | HandleLogin Login.Message a
   | HandleChat Chat.Message a
 
 data CRUD
@@ -64,8 +63,8 @@ type State =
 type QueryP
   = Coproduct Input ChildQuery
 
-type ChildQuery = Coproduct4 Sessions.Input Navbar.Input Login.Input Chat.Input
-type ChildSlot  = Either4    Sessions.Slot  Navbar.Slot  Login.Slot  Chat.Slot
+type ChildQuery = Coproduct3 Sessions.Input Navbar.Input Chat.Input
+type ChildSlot  = Either3    Sessions.Slot  Navbar.Slot  Chat.Slot
 
 ui :: forall eff. Component HTML Input Unit Message (Login.LoginEff eff)
 ui = H.parentComponent
@@ -79,7 +78,6 @@ ui = H.parentComponent
   render st =
     div_
       [ slot' pathToNavbar Navbar.Slot Navbar.ui unit (HE.input HandleNavbar)
-      , slot' pathToLogin  Login.Slot  Login.ui  unit (HE.input HandleLogin)
       , viewPage st.currentPage
       ]
 
@@ -107,9 +105,6 @@ ui = H.parentComponent
     pure next
   eval (HandleNavbar (Navbar.SetPage page) next) = do
     pure next
-  eval (HandleLogin (Login.GotToken token) next) = do
-    H.raise $ OutputMessage token
-    pure next
   eval (HandleChat (Chat.OutputMessage msg) next) = do
     H.raise $ OutputMessage msg
     pure next
@@ -120,12 +115,11 @@ pathToSessions = cp1
 pathToNavbar :: ChildPath Navbar.Input ChildQuery Navbar.Slot ChildSlot
 pathToNavbar = cp2
 
-pathToLogin :: ChildPath Login.Input ChildQuery Login.Slot ChildSlot
-pathToLogin = cp3
-
 pathToChat :: ChildPath Chat.Input ChildQuery Chat.Slot ChildSlot
-pathToChat = cp4
+pathToChat = cp3
 
+-- pathToLogin :: ChildPath Login.Input ChildQuery Login.Slot ChildSlot
+-- pathToLogin = cp4
 
 routeSignal :: forall eff. H.HalogenIO Input Message (Aff (HA.HalogenEffects eff))
             -> Aff (HA.HalogenEffects eff) Unit
