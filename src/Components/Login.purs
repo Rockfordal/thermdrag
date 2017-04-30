@@ -28,7 +28,7 @@ type State =
   , token :: Maybe String
   }
 
-data Query a
+data Input a
   = UpdateUsername String a
   | UpdatePassword String a
   | SendLogin a
@@ -39,9 +39,12 @@ data Message
 
 type LoginEff eff = Aff (ajax :: AJAX | eff)
 
+data Slot = Slot
+derive instance eqSlot :: Eq Slot
+derive instance ordSlot :: Ord Slot
 
-component :: forall eff. H.Component HTML Query Unit Message (LoginEff eff)
-component =
+ui :: forall eff. H.Component HTML Input Unit Message (LoginEff eff)
+ui =
   H.component
     { initialState: const initialState
     , render
@@ -55,7 +58,7 @@ component =
                  , token: Nothing
                  }
   
-  render :: State -> H.ComponentHTML Query
+  render :: State -> H.ComponentHTML Input
   render state =
     div_
       case state.token of
@@ -80,7 +83,7 @@ component =
           ]
 
 
-  eval :: Query ~> H.ComponentDSL State Query Message (LoginEff eff)
+  eval :: Input ~> H.ComponentDSL State Input Message (LoginEff eff)
   eval (UpdateUsername text next) = do
     H.modify (_ { username = text })
     pure next

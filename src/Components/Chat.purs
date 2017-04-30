@@ -1,5 +1,4 @@
 module Components.Chat where
-
 import Prelude
 import Data.Array as A
 import Halogen as H
@@ -27,7 +26,7 @@ type State =
   -- , rooms :: List String
   }
 
-data Query a
+data Input a
   = UpdateInputText String a
   | JoinRoom String a
   | AddMessage String (String -> a)
@@ -37,9 +36,13 @@ data Query a
 data Message
   = OutputMessage String                 
 
-component :: forall eff. H.Component HH.HTML Query String Message (Aff (ajax :: AJAX | eff))
--- component :: forall eff. H.Component HH.HTML Query String Message eff
-component =
+data Slot = Slot
+derive instance eqSlot :: Eq Slot
+derive instance ordSlot :: Ord Slot
+
+
+ui :: forall eff. H.Component HH.HTML Input String Message (Aff (ajax :: AJAX | eff))
+ui =
   H.component
     { initialState: const initialState
     , render
@@ -50,7 +53,7 @@ component =
   initialState :: State
   initialState = { messages: [] , inputText: "", room: "", username: "andersl" }
 
-  render :: State -> H.ComponentHTML Query
+  render :: State -> H.ComponentHTML Input
   render state =
     HH.div_
       [ HH.ol_ $ map (\msg -> HH.li_ [ HH.text msg ]) state.messages
@@ -70,8 +73,7 @@ component =
           [ HH.text "Get Rooms" ]
       ]
 
-  eval :: Query ~> H.ComponentDSL State Query Message (Aff (ajax :: AJAX | eff))
---   eval :: Query ~> H.ComponentDSL State Query Message eff
+  eval :: Input ~> H.ComponentDSL State Input Message (Aff (ajax :: AJAX | eff))
   eval (UpdateInputText text next) = do
     H.modify (_ { inputText = text })
     pure next

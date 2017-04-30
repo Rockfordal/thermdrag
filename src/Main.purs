@@ -7,10 +7,7 @@ import Control.Monad.Eff.Unsafe (unsafePerformEff)
 
 foreign import hot :: forall eff. Eff eff Unit
 
-
 main :: Unit
 main = unsafePerformEff $ do
-  -- buttonapp
-  -- ajaxapp
   containerapp
   hot
