@@ -24,9 +24,9 @@ data Output
   | GotToken String                 
 
 data Slot = Slot
+
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
-
 
 ui :: forall eff. Component HTML Input Unit Output (Login.LoginEff eff)
 ui =

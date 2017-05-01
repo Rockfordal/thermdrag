@@ -11,7 +11,7 @@ type State = Unit
 
 data Slot = Slot
 
-derive instance eqSlot :: Eq Slot
+derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
 ui :: forall m. H.Component HH.HTML Input Unit Void m
