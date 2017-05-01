@@ -25,7 +25,7 @@ ui = H.component
     render _ =
       HH.div_
         [ HH.h1_ [ HH.text "Your Sessions" ]
-        , HH.p_ [ HH.text "wow you lift a LOT" ]
+        , HH.p_  [ HH.text "wow you lift a LOT" ]
         ]
 
     eval :: Input ~> H.ComponentDSL State Input Void m

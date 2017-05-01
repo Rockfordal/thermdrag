@@ -1,11 +1,11 @@
 module Components.Button where
 
-import Prelude
-import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
+import Data.Maybe (Maybe(..))
+import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
 
 type State = Boolean
 
@@ -18,16 +18,12 @@ data Message = Toggled Boolean
 ui :: forall m. H.Component HH.HTML Query Unit Message m
 ui =
   H.component
-    { initialState: const initialState
+    { initialState: const false
     , render
     , eval
     , receiver: const Nothing
     }
   where
-
-  initialState :: State
-  initialState = false
-
   render :: State -> H.ComponentHTML Query
   render state =
     let
@@ -50,3 +46,4 @@ ui =
     IsOn reply -> do
       state <- H.get
       pure $ reply state
+

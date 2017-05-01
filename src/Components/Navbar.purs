@@ -1,42 +1,43 @@
 module Components.Navbar where
 
+import Components.Login as Login
+import Halogen.HTML.Events as HE
 import Halogen.Themes.Bootstrap3 as B
 import Data.Array ((:))
 import Data.Maybe (Maybe(..))
 import Data.String (toLower)
-import Halogen (Component, component, modify)
-import Halogen.Component (ComponentHTML, ComponentDSL)
-import Halogen.HTML (HTML, a, div, li_, nav, text, ul)
+import Halogen (Component, modify, raise)
+import Halogen.Component (ParentDSL, ParentHTML, parentComponent)
+import Halogen.HTML (HTML, a, div, li_, nav, slot, text, ul)
 import Halogen.HTML.Properties (class_, classes, href)
-import Prelude hiding (div)
+import Prelude (class Eq, class Ord, type (~>), Unit, const, discard, map, pure, unit, ($), (<>))
 
 type State =
   { dummy :: Boolean }
 
 data Input a
   = UpdateInputText String a
-  -- | HandleLogin Login.Message a
+  | HandleLogin Login.Message a
 
 data Message
   = SetPage String                 
+  | GotToken String                 
 
 data Slot = Slot
-derive instance eqSlot :: Eq Slot
+derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
-ui :: forall eff. Component HTML Input Unit Message eff
+
+ui :: forall eff. Component HTML Input Unit Message (Login.LoginEff eff)
 ui =
-  component
-    { initialState: const initialState
+  parentComponent
+    { initialState: const { dummy: false }
     , render
     , eval
     , receiver: const Nothing
     }
   where
-  initialState :: State
-  initialState = { dummy: false }
-
-  render :: State -> ComponentHTML Input
+  render :: State -> ParentHTML Input Login.Input Login.Slot (Login.LoginEff eff)
   render state =
     nav [ classes [ B.navbarNav, B.navbarFixedTop, B.navbarInverse] ]
       [ container_
@@ -45,15 +46,7 @@ ui =
             ] [ text "SuperChat" ]
         , ul [ classes [ B.navbarNav, B.nav, B.navTabs] ]
           (map link ["Sessions", "Chat"])
-      -- , slot' pathToLogin  Login.Slot  Login.ui  unit (HE.input HandleLogin)
-        -- , case muser of
-        --        Nothing ->
-        --            H.ul [ P.classes [ B.nav, B.navbarNav, B.navTabs, B.navbarRight ] ]
-        --                [ H.li_ [ linkTo Login "Log in" ]
-        --                , H.li_ [ linkTo Registration "Sign up" ] ]
-        --        Just u ->
-        --            H.ul [ P.classes [ B.nav, B.navbarNav, B.navTabs, B.navbarRight ] ]
-        --                [ H.li_ [ linkTo Logout "Log out" ] ]
+        , slot Login.Slot Login.ui unit (HE.input HandleLogin)
         ]
       ]
 
@@ -62,11 +55,11 @@ ui =
   container attrs = div (class_ B.container : attrs)
   container_ = container []
 
-  eval :: Input ~> ComponentDSL State Input Message eff
+  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Message (Login.LoginEff eff)
   eval (UpdateInputText text next) = do
     modify (_ { dummy = true })
     pure next
-  -- eval (HandleLogin (Login.GotToken token) next) = do
-  --   H.raise $ OutputMessage token
-  --   pure next
+  eval (HandleLogin (Login.GotToken token) next) = do
+    raise $ GotToken token
+    pure next
 
