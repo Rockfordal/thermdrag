@@ -14,7 +14,7 @@ data Input a
 
 type State = Boolean
 
-data Output = Toggled Boolean
+data Output = NewState Boolean
 
 ui :: forall m. Component HTML Input Unit Output m
 ui =
@@ -38,7 +38,7 @@ ui =
     Toggle next -> do
       state <- get
       put (not state)
-      raise $ Toggled (not state)
+      raise $ NewState (not state)
       pure next
     IsOn reply -> do
       state <- get
