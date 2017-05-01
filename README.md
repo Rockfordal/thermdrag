@@ -19,7 +19,7 @@ _The chat is using the chatqy Haskell Servant project as ajax, websocket server
 
 _Im using Visual Studio Code, Purescript 0.11.4 built from source, and the font Hack
 
-![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/master/images/chat1.png)
+![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/chat1.png)
 
 #### Installation Linux/Osx
 * npm install
