@@ -26,8 +26,8 @@ import Routing.Match.Class (lit, num)
 data Input a
   = Goto Routes a
   | IncomingMessage String a
-  | HandleNavbar Navbar.Message a
-  | HandleChat Chat.Message a
+  | HandleNavbar Navbar.Output a
+  | HandleChat Chat.Output a
 
 data CRUD
   = Index
@@ -38,7 +38,7 @@ data Routes
   | Sessions CRUD
   | Home
 
-data Message
+data Output
   = OutputMessage String                 
 
 
@@ -61,7 +61,7 @@ type QueryP
 type ChildQuery = Coproduct3 Sessions.Input Navbar.Input Chat.Input
 type ChildSlot  = Either3    Sessions.Slot  Navbar.Slot  Chat.Slot
 
-ui :: forall eff. Component HTML Input Unit Message (Login.LoginEff eff)
+ui :: forall eff. Component HTML Input Unit Output (Login.LoginEff eff)
 ui = parentComponent
   { initialState: const { currentPage: "Home" }
   , render
@@ -81,7 +81,7 @@ ui = parentComponent
   viewPage "Chat"     = slot' pathToChat Chat.Slot Chat.ui "" (HE.input HandleChat)
   viewPage _          = div_ [ text "Du är hemma"]
 
-  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Message (Login.LoginEff eff)
+  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (Login.LoginEff eff)
   eval (Goto Chat next) = do
     modify (_ { currentPage = "Chat" })
     pure next
@@ -117,13 +117,13 @@ pathToNavbar = cp2
 pathToChat :: ChildPath Chat.Input ChildQuery Chat.Slot ChildSlot
 pathToChat = cp3
 
-routeSignal :: forall eff. HalogenIO Input Message (Aff (HA.HalogenEffects eff))
+routeSignal :: forall eff. HalogenIO Input Output (Aff (HA.HalogenEffects eff))
             -> Aff (HA.HalogenEffects eff) Unit
 routeSignal driver = do
   Tuple old new <- matchesAff routing
   redirects driver old new
 
-redirects :: forall eff. HalogenIO Input Message (Aff (HA.HalogenEffects eff))
+redirects :: forall eff. HalogenIO Input Output (Aff (HA.HalogenEffects eff))
           -> Maybe Routes
           -> Routes
           -> Aff (HA.HalogenEffects eff) Unit

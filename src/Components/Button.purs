@@ -1,49 +1,46 @@
 module Components.Button where
 
-import Halogen as H
-import Halogen.HTML as HH
+import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Data.Maybe (Maybe(..))
-import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
+import Halogen (Component, component, get, put, raise)
+import Halogen.Component (ComponentHTML, ComponentDSL)
+import Halogen.HTML (HTML, button, text)
 
-type State = Boolean
-
-data Query a
+data Input a
   = Toggle a
   | IsOn (Boolean -> a)
 
-data Message = Toggled Boolean
+type State = Boolean
 
-ui :: forall m. H.Component HH.HTML Query Unit Message m
+data Output = Toggled Boolean
+
+ui :: forall m. Component HTML Input Unit Output m
 ui =
-  H.component
+  component
     { initialState: const false
     , render
     , eval
     , receiver: const Nothing
     }
   where
-  render :: State -> H.ComponentHTML Query
+  render :: State -> ComponentHTML Input
   render state =
-    let
-      label = if state then "On" else "Off"
-    in
-      HH.button
+    let label = if state then "On" else "Off"
+    in button
         [ HP.title label
         , HE.onClick (HE.input_ Toggle)
-        ]
-        [ HH.text label ]
+        ] [ text label ]
 
-  eval :: Query ~> H.ComponentDSL State Query Message m
+  eval :: Input ~> ComponentDSL State Input Output m
   eval = case _ of
     Toggle next -> do
-      state <- H.get
-      let nextState = not state
-      H.put nextState
-      H.raise $ Toggled nextState
+      state <- get
+      put (not state)
+      raise $ Toggled (not state)
       pure next
     IsOn reply -> do
-      state <- H.get
+      state <- get
       pure $ reply state
 

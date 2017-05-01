@@ -17,9 +17,9 @@ type State =
 
 data Input a
   = UpdateInputText String a
-  | HandleLogin Login.Message a
+  | HandleLogin Login.Output a
 
-data Message
+data Output
   = SetPage String                 
   | GotToken String                 
 
@@ -28,7 +28,7 @@ derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
 
-ui :: forall eff. Component HTML Input Unit Message (Login.LoginEff eff)
+ui :: forall eff. Component HTML Input Unit Output (Login.LoginEff eff)
 ui =
   parentComponent
     { initialState: const { dummy: false }
@@ -55,7 +55,7 @@ ui =
   container attrs = div (class_ B.container : attrs)
   container_ = container []
 
-  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Message (Login.LoginEff eff)
+  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginEff eff)
   eval (UpdateInputText text next) = do
     modify (_ { dummy = true })
     pure next

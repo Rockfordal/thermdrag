@@ -35,7 +35,7 @@ data Input a
   | SendMessage a
   | GetRooms a
 
-data Message
+data Output
   = OutputMessage String                 
 
 data Slot = Slot
@@ -50,7 +50,7 @@ type TextMsg =
   , typ      :: String
   }
 
-ui :: forall eff. Component HTML Input String Message (Aff (ajax :: AJAX | eff))
+ui :: forall eff. Component HTML Input String Output (Aff (ajax :: AJAX | eff))
 ui =
   component
     { initialState: const initialState
@@ -88,7 +88,7 @@ ui =
           , HE.onValueInput (HE.input UpdateInputText) ]
       ]
 
-  eval :: Input ~> ComponentDSL State Input Message (Aff (ajax :: AJAX | eff))
+  eval :: Input ~> ComponentDSL State Input Output (Aff (ajax :: AJAX | eff))
   eval (UpdateInputText text next) = do
     modify (_ { inputText = text })
     pure next
@@ -121,7 +121,7 @@ ui =
 
 
 getit :: forall r eff. Respondable r => Maybe String -> Aff ( ajax :: AJAX | eff)
-              { status :: StatusCode , headers :: Array ResponseHeader , response :: r }
+              { status :: StatusCode , headers :: Array ResponseHeader, response :: r }
 getit jwt = affjax $ rekvest jwt
 
 

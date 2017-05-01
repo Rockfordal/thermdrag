@@ -36,7 +36,7 @@ data Input a
   | SendLogin a
   | SendLogout a
 
-data Message
+data Output
   = GotToken String                 
 
 data Cred = Cred (Tuple String String)
@@ -55,7 +55,7 @@ derive instance ordSlot :: Ord Slot
 type LoginEff eff = Aff (ajax :: AJAX | eff)
 
 
-ui :: forall eff. Component HTML Input Unit Message (LoginEff eff)
+ui :: forall eff. Component HTML Input Unit Output (LoginEff eff)
 ui =
   component
     { initialState: const initialState
@@ -103,7 +103,7 @@ ui =
             ] [ text "Logga ut " ]
           ]
 
-  eval :: Input ~> ComponentDSL State Input Message (LoginEff eff)
+  eval :: Input ~> ComponentDSL State Input Output (LoginEff eff)
   eval (UpdateUsername text next) = do
     modify (_ { username = text })
     pure next

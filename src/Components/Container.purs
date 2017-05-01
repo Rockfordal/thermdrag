@@ -17,6 +17,9 @@ import Halogen.VDom.Driver (runUI)
 import Network.HTTP.Affjax (AJAX)
 import WebSocket as WS
 
+wsUrl :: String
+wsUrl = "ws://46.162.127.62:8081"
+
 -- A producer coroutine that emits messages that arrive from the websocket.
 wsProducer :: forall eff . WS.Connection
   -> CR.Producer String (Aff (avar :: AVAR, err :: EXCEPTION, ajax :: AJAX, ws :: WS.WEBSOCKET | eff)) Unit
@@ -38,7 +41,7 @@ wsConsumer query =
 
 -- Consumer coroutine takes output messages from our component IO, sends with websocket
 wsSender :: forall eff . WS.Connection
-  -> CR.Consumer Router.Message (Aff (HA.HalogenEffects (ws :: WS.WEBSOCKET, ajax :: AJAX, err :: EXCEPTION | eff))) Unit    
+  -> CR.Consumer Router.Output (Aff (HA.HalogenEffects (ws :: WS.WEBSOCKET, ajax :: AJAX, err :: EXCEPTION | eff))) Unit    
 wsSender (WS.Connection socket) = CR.consumer \msg -> do
   case msg of
     Router.OutputMessage msgContents -> do
@@ -57,13 +60,11 @@ containerapp = do
 
     -- The wsSender consumer subscribes to all output messages from our component
     io.subscribe $ wsSender conn
+
+    -- If we want to trigger an action
     -- io.query $ H.action $ B.Toggle        
 
     -- Connecting the consumer to the producer initializes both,
     -- feeding queries back to our component as messages are received.
     CR.runProcess (wsProducer conn CR.$$ wsConsumer io.query)
     -- CR.runProcess (hashChangeProducer CR.$$ hashChangeConsumer io.query)
-
-
-wsUrl :: String
-wsUrl = "ws://46.162.127.62:8081"
