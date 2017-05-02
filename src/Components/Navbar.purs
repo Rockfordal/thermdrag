@@ -51,7 +51,9 @@ ui =
         ]
       ]
 
-  link s = li_ [ a [ href ("#/" <> toLower s) ] [ text s ] ]
+  link s =
+    li_ [ a [ href ("#/" <> toLower s) ]
+      [ text s ] ]
 
   container attrs = div (class_ B.container : attrs)
   container_ = container []
