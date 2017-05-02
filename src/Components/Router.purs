@@ -1,21 +1,23 @@
 module Components.Router where
 
 import Components.Chat as Chat
+import Components.Draw as Draw
 import Components.Navbar as Navbar
 import Components.Sessions as Sessions
 import Components.Login (LoginEff)
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff)
 import Control.Monad.State.Class (modify)
-import Data.Either.Nested (Either3)
+import Data.Array (snoc)
+import Data.Either.Nested (Either4)
 import Data.Functor.Coproduct (Coproduct)
-import Data.Functor.Coproduct.Nested (Coproduct3)
+import Data.Functor.Coproduct.Nested (Coproduct4)
 import Data.Maybe (Maybe(Nothing))
 import Data.Tuple (Tuple(Tuple))
 import Halogen (Component, HalogenIO, action, parentComponent, query', raise, request)
 import Halogen.Aff.Effects (HalogenEffects)
 import Halogen.Component (ParentHTML, ParentDSL)
-import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
+import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3, cp4)
 import Halogen.HTML (HTML, div_, slot', text)
 import Halogen.HTML.Events as HE
 import Prelude (type (~>), Unit, absurd, bind, const, discard, pure, show, unit, ($), (*>), (<$), (<$>), (<>), (>>>))
@@ -24,11 +26,12 @@ import Routing.Match (Match)
 import Routing.Match.Class (lit, num)
 
 type QueryP     = Coproduct  Input ChildQuery
-type ChildQuery = Coproduct3 Sessions.Input Navbar.Input Chat.Input
-type ChildSlot  = Either3    Sessions.Slot  Navbar.Slot  Chat.Slot
+type ChildQuery = Coproduct4 Navbar.Input Chat.Input Draw.Input Sessions.Input
+type ChildSlot  = Either4    Navbar.Slot  Chat.Slot  Draw.Slot  Sessions.Slot
 
 type State =
   { currentPage :: String
+  , pages :: Array String
   }
 
 data Input a
@@ -43,6 +46,7 @@ data CRUD
 
 data Routes
   = Chat
+  | Draw
   | Sessions CRUD
   | Home
 
@@ -53,33 +57,34 @@ data Output
 ui :: forall e. Component HTML Input Unit Output (LoginEff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: const Nothing }
   where
-  initial = { currentPage: "Home" }
+  initial = { currentPage: "Home", pages: ["Sessions", "Chat"] }
 
   render :: State -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
   render state =
     div_
-      [ slot' pathToNavbar Navbar.Slot Navbar.ui unit $ HE.input HandleNavbar
+      [ slot' pathToNavbar Navbar.Slot Navbar.ui state.pages $ HE.input HandleNavbar
       , viewPage state.currentPage
       ]
 
   viewPage "Sessions" = slot' pathToSessions Sessions.Slot Sessions.ui unit absurd
+  viewPage "Draw"     = slot' pathToDraw     Draw.Slot     Draw.ui     unit absurd
   viewPage "Chat"     = slot' pathToChat     Chat.Slot     Chat.ui     "" $ HE.input HandleChat
   viewPage _          = div_ [ text "Du är hemma" ]
 
   eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (LoginEff e)
+  eval (Goto Home next) = do
+    modify (_ { currentPage = "Home" })
+    pure next
   eval (Goto Chat next) = do
     modify (_ { currentPage = "Chat" })
     pure next
-
+  eval (Goto Draw next) = do
+    modify (_ { currentPage = "Draw" })
+    pure next
   eval (Goto (Sessions view) next) = do
     modify case view of
       Index  -> (_ { currentPage = "Sessions" })
       Show n -> (_ { currentPage = "Session " <> show n })
-    pure next
-
-  eval (Goto Home next) = do
-    raise $ OutputMessage "We went somewhere!"
-    modify (_ { currentPage = "Home" })
     pure next
 
   eval (IncomingMessage text next) = do
@@ -87,10 +92,10 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
     _ <- query' pathToChat Chat.Slot $ request (Chat.AddMessage logtext)
     pure next
 
-  eval (HandleNavbar (Navbar.SetPage page) next) = do
-    pure next
-
+  eval (HandleNavbar (Navbar.SetPage page) next) = pure next
   eval (HandleNavbar (Navbar.GotToken token) next) = do
+    modify \state -> state
+      { pages = state.pages `snoc` "Draw" }
     raise $ OutputMessage token
     pure next
 
@@ -98,24 +103,27 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
     raise $ OutputMessage text
     pure next
 
-
 routing :: Match Routes
-routing = chat <|> sessions <|> home
+routing = chat <|> draw <|> sessions <|> home
   where
     chat      = Chat <$ route "chat"
+    draw      = Draw <$ route "draw"
     home      = Home <$ lit ""
     sessions  = Sessions <$> (route "sessions" *> parseCRUD)
     route str = lit "" *> lit str
     parseCRUD = Show <$> num <|> pure Index
 
-pathToSessions :: ChildPath Sessions.Input ChildQuery Sessions.Slot ChildSlot
-pathToSessions = cp1
-
 pathToNavbar :: ChildPath Navbar.Input ChildQuery Navbar.Slot ChildSlot
-pathToNavbar = cp2
+pathToNavbar = cp1
 
 pathToChat :: ChildPath Chat.Input ChildQuery Chat.Slot ChildSlot
-pathToChat = cp3
+pathToChat = cp2
+
+pathToDraw :: ChildPath Draw.Input ChildQuery Draw.Slot ChildSlot
+pathToDraw = cp3
+
+pathToSessions :: ChildPath Sessions.Input ChildQuery Sessions.Slot ChildSlot
+pathToSessions = cp4
 
 routeSignal :: forall e. HalogenIO Input Output
                          (Aff (HalogenEffects e))

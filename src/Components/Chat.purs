@@ -2,7 +2,7 @@ module Components.Chat where
 
 -- import Components.Common (restUrl, getit)
 import Control.Monad.Aff (Aff)
-import Data.Array as A
+import Data.Array (snoc)
 import Halogen (Component, component, get, modify, raise)
 import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, br_, button, div_, input, li_, ol_, text)
@@ -100,13 +100,13 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
                   }
     let logtext = "Sending: " <> st.inputText
     modify \state -> state
-       { messages  = state.messages `A.snoc` logtext
-       , inputText = "" }
+      { messages  = state.messages `snoc` logtext
+      , inputText = "" }
     pure next
 
   eval (AddMessage text reply) = do
     modify \state -> state
-        { messages = state.messages `A.snoc` text }
+      { messages = state.messages `snoc` text }
     pure (reply "")
 
   eval (GetRooms next) = do

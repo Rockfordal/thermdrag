@@ -1,17 +1,18 @@
 module Components.Login where
 
 import Halogen.HTML.Events as HE
-import Components.Common (getit, parsetoken, postit)
+import Components.Common (getit, parseResponse, postit)
 import Components.Config (restUrl)
 import Control.Monad.Aff (Aff)
 import Data.Argonaut.Core (jsonEmptyObject)
 import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=), (~>))
+import Data.Either (Either(Right, Left))
 import Data.Maybe (Maybe(Nothing, Just))
 import Data.Tuple (Tuple(Tuple), fst, snd)
 import Halogen (Component, component, gets, liftAff, modify, raise)
 import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, button, div, form, input, text)
-import Halogen.HTML.Properties (ButtonType(ButtonSubmit), InputType(InputText, InputPassword), class_, classes, placeholder, type_, value)
+import Halogen.HTML.Properties (ButtonType(ButtonSubmit), InputType(InputText, InputPassword), autofocus, class_, classes, placeholder, type_, value)
 import Halogen.Themes.Bootstrap3 (btn, btnSuccess, formControl, formGroup, navbarForm, navbarRight)
 import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.StatusCode (StatusCode(StatusCode))
@@ -67,6 +68,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
               , placeholder "Användarnamn"
               , value state.username
               , class_ formControl
+              , autofocus true
               , HE.onValueInput $ HE.input UpdateUsername ]
             , input
               [ type_ InputPassword
@@ -102,13 +104,14 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
     password <- gets _.password
     let payload = encodeJson $ Cred (Tuple username password)
     result <- postit loginUrl payload
-    let resp = parsetoken result.response "access_token"
-    case resp of
-      Just token -> do
-        modify (_ { token = resp })
-        raise $ GotToken token
-      Nothing ->
+
+    case parseResponse "access_token" result.response of
+      Right tok -> do
+        modify (_ { token = Just tok })
+        raise (GotToken tok)
+      Left err ->
         modify (_ { token = Nothing })
+        -- raise (Notify err)
     pure next
 
   eval (SendLogout next) = do
@@ -122,9 +125,9 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
         pure unit
     pure next
 
-
 logoutUrl :: String
 logoutUrl = restUrl <> "/api/logout"
 
 loginUrl :: String
 loginUrl = restUrl <> "/api/login"
+

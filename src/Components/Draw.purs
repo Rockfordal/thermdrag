@@ -2,7 +2,7 @@ module Components.Draw where
 
 import Svg.Attributes as SA
 import Svg.Elements as SE
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(Just, Nothing))
 import Halogen (Component, component, modify)
 import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML())

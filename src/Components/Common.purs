@@ -3,17 +3,18 @@ module Components.Common where
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
 import Control.Monad.Except (runExcept)
-import Data.Either (Either(Left, Right))
-import Data.Foreign (Foreign, readString)
+import Data.Either (Either(Left))
+import Data.Foreign (Foreign, ForeignError, readString)
 import Data.Foreign.Index (readProp)
 import Data.HTTP.Method (Method(GET))
-import Data.Maybe (Maybe(Just, Nothing), fromMaybe)
+import Data.List.Types (NonEmptyList)
+import Data.Maybe (Maybe, fromMaybe)
 import Data.MediaType.Common (applicationJSON)
 import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax, defaultRequest, post)
 import Network.HTTP.Affjax.Request (class Requestable)
 import Network.HTTP.Affjax.Response (class Respondable)
 import Network.HTTP.RequestHeader (RequestHeader(ContentType, RequestHeader))
-import Prelude (class Bind, ($), (<>))
+import Prelude (class Bind, ($), (<>), (=<<))
 
 type Ajax' e = (ajax :: AJAX | e)
 
@@ -23,22 +24,21 @@ postit url payload =
 
 getit :: ∀  r e. Respondable r ⇒ Maybe String → String → Aff (Ajax' e) (AffjaxResponse r)
 getit jwt url =
-  affjax $
-    defaultRequest
-      { url     = url
-      , method  = Left GET
-      , headers =
-        [ ContentType applicationJSON
-        , RequestHeader "Authorization"
-                      $ "Bearer " <> (fromMaybe "" jwt)
-        ]
-      }
+  let
+    tokenString = fromMaybe "" jwt
+  in
+    affjax $
+      defaultRequest
+        { url     = url
+        , method  = Left GET
+        , headers =
+          [ ContentType applicationJSON
+          , RequestHeader "Authorization"
+                        $ "Bearer " <> tokenString
+          ]
+        }
 
-parsetoken :: Foreign → String -> Maybe String
-parsetoken resp prop =
-  case runExcept $ readProp prop resp of
-    Right fs ->
-      case runExcept $ readString fs of
-        Right s -> Just s
-        _ -> Nothing
-    _ -> Nothing
+
+parseResponse :: String -> Foreign -> Either (NonEmptyList ForeignError) String
+parseResponse prop f =
+  runExcept $ readString =<< readProp prop f
