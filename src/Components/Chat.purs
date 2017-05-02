@@ -1,15 +1,15 @@
 module Components.Chat where
 
--- import Components.Common (baseUrl, getit)
-import Halogen.Themes.Bootstrap3
-import Data.Array as A
-import Halogen.HTML.Events as HE
+-- import Components.Common (restUrl, getit)
 import Control.Monad.Aff (Aff)
+import Data.Array as A
 import Halogen (Component, component, get, modify, raise)
-import Halogen.Component (ComponentHTML, ComponentDSL)
+import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, br_, button, div_, input, li_, ol_, text)
 import Halogen.HTML.Properties (InputType(InputText), class_, type_, value)
+import Halogen.HTML.Events as HE
 import Network.HTTP.Affjax (AJAX)
+import Halogen.Themes.Bootstrap3
 import Prelude (class Eq, class Ord, type (~>), const, discard, map, pure, ($), (<>), bind, show)
 
 derive instance eqSlot  :: Eq Slot
@@ -54,15 +54,14 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
             , room: ""
             }
 
-  render :: State -> ComponentHTML Input
   render state =
     div_
-      [ ol_ $ map (\msg -> li_ [ text msg ]) state.messages
+      [ ol_ $ map viewitem state.messages
       , div_ []
       , button
           [ HE.onClick $ HE.input_ SendMessage
           , class_ btn ]
-          [ text "Skicka meddelande" ]
+          [ text "Send meddelande" ]
       , button
           [ HE.onClick $ HE.input_ (JoinRoom state.inputText)
           , class_ btn ]
@@ -79,6 +78,8 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
           , value state.inputText
           , HE.onValueInput $ HE.input UpdateInputText ]
       ]
+
+  viewitem m = li_ [ text m ]
 
   eval :: Input ~> ComponentDSL State Input Output (AjaxEff e)
   eval (UpdateInputText text next) = do
@@ -119,6 +120,8 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
 --         H.modify (_ { inputText = show i })
     pure next
 
+  -- roomsUrl = restUrl <> "/api/rooms"
+
 
 showTextMsg :: TextMsg -> String
 showTextMsg msg =
@@ -126,7 +129,3 @@ showTextMsg msg =
   "," <> show "payload"  <> ":" <> show msg.payload <>
   "," <> show "roomname" <> ":" <> show msg.roomname <>
   "," <> show "type"     <> ":" <> show msg.typ <> "}"
-
--- roomsUrl :: String
--- roomsUrl = baseUrl <> "/api/rooms"
-

@@ -9,7 +9,7 @@ import Data.Argonaut.Encode (class EncodeJson, encodeJson, (:=), (~>))
 import Data.Maybe (Maybe(Nothing, Just))
 import Data.Tuple (Tuple(Tuple), fst, snd)
 import Halogen (Component, component, gets, liftAff, modify, raise)
-import Halogen.Component (ComponentHTML, ComponentDSL)
+import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, button, div, form, input, text)
 import Halogen.HTML.Properties (ButtonType(ButtonSubmit), InputType(InputText, InputPassword), class_, classes, placeholder, type_, value)
 import Halogen.Themes.Bootstrap3 (btn, btnSuccess, formControl, formGroup, navbarForm, navbarRight)
@@ -57,7 +57,6 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
             , token: Nothing
             }
 
-  render :: State -> ComponentHTML Input
   render state =
     form [ classes [ navbarForm, navbarRight ]]
       case state.token of
@@ -78,7 +77,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
               , HE.onValueInput $ HE.input UpdatePassword ]
             , button
               [ type_ ButtonSubmit
-              , classes [ btn, btnSuccess]
+              , classes [ btn, btnSuccess ]
               , HE.onClick $ HE.input_ SendLogin ]
               [ text "Logga in " ]
             ]

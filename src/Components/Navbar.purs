@@ -1,16 +1,15 @@
 module Components.Navbar where
 
 import Components.Login as Login
-import Data.Array ((:))
+import Components.Helpers (container_, navlink)
 import Data.Maybe (Maybe(Nothing))
-import Data.String (toLower)
-import Halogen (Component, put, raise)
-import Halogen.Component (ParentDSL, ParentHTML, parentComponent)
-import Halogen.HTML.Events as HE
-import Halogen.HTML (HTML, a, div, li_, nav, slot, text, ul)
-import Halogen.HTML.Properties (class_, classes, href)
 import Halogen.Themes.Bootstrap3 as B
-import Prelude (class Eq, class Ord, type (~>), Unit, const, discard, map, pure, unit, ($), (<>))
+import Halogen (Component, put, raise)
+import Halogen.Component (ParentDSL, parentComponent)
+import Halogen.HTML (HTML, a, nav, slot, text, ul)
+import Halogen.HTML.Properties (classes, href)
+import Halogen.HTML.Events as HE
+import Prelude (class Eq, class Ord, type (~>), Unit, const, discard, map, pure, unit, ($))
 
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
@@ -34,7 +33,6 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
   where
   initial = false
 
-  render :: State -> ParentHTML Input Login.Input Login.Slot (Login.LoginEff e)
   render state =
     nav [ classes [ B.navbarNav, B.navbarFixedTop, B.navbarInverse] ]
       [ container_
@@ -42,17 +40,10 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
             , href "#/Home"
             ] [ text "SuperChat" ]
         , ul [ classes [ B.navbarNav, B.nav, B.navTabs] ]
-          (map link ["Sessions", "Chat"])
+          $ map navlink ["Sessions", "Chat"]
         , slot Login.Slot Login.ui unit $ HE.input HandleLogin
         ]
       ]
-
-  link s =
-    li_ [ a [ href ("#/" <> toLower s) ]
-      [ text s ] ]
-
-  container attrs = div (class_ B.container : attrs)
-  container_ = container []
 
   eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginEff e)
   eval (UpdateInputText text next) = do

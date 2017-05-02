@@ -4,7 +4,7 @@ import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
 import Data.Maybe (Maybe(Nothing))
 import Halogen (Component, component, get, put, raise)
-import Halogen.Component (ComponentHTML, ComponentDSL)
+import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, button, text)
 import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
 
@@ -19,15 +19,10 @@ data Output = NewState Boolean
 
 
 ui :: forall e. Component HTML Input Unit Output e
-ui =
-  component
-    { initialState: const false
-    , render
-    , eval
-    , receiver: const Nothing
-    }
+ui = component { initialState: const initial, render, eval, receiver: const Nothing }
   where
-  render :: State -> ComponentHTML Input
+  initial = false
+
   render state =
     let label = if state then "On" else "Off"
     in button
