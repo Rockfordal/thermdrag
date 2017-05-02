@@ -8,15 +8,17 @@ import Halogen (Component, component, get, put, raise)
 import Halogen.Component (ComponentHTML, ComponentDSL)
 import Halogen.HTML (HTML, button, text)
 
+
+type State = Boolean
+
 data Input a
   = Toggle a
   | IsOn (Boolean -> a)
 
-type State = Boolean
-
 data Output = NewState Boolean
 
-ui :: forall m. Component HTML Input Unit Output m
+
+ui :: forall e. Component HTML Input Unit Output e
 ui =
   component
     { initialState: const false
@@ -29,16 +31,17 @@ ui =
   render state =
     let label = if state then "On" else "Off"
     in button
-        [ HP.title label
-        , HE.onClick (HE.input_ Toggle)
-        ] [ text label ]
+      [ HP.title label
+      , HE.onClick (HE.input_ Toggle)
+      ] [ text label ]
 
-  eval :: Input ~> ComponentDSL State Input Output m
+  eval :: Input ~> ComponentDSL State Input Output e
   eval = case _ of
     Toggle next -> do
       state <- get
-      put (not state)
-      raise $ NewState (not state)
+      let newstate = not state
+      put newstate
+      raise $ NewState newstate
       pure next
     IsOn reply -> do
       state <- get

@@ -1,20 +1,22 @@
 module Components.Sessions where
+
 import Data.Maybe (Maybe(..))
 import Halogen as H
 import Halogen.HTML as HH
 import Prelude (class Eq, class Ord, type (~>), Unit, Void, const, pure, unit)
 
-data Input a
-  = Noop a
-
-type State = Unit
-
-data Slot = Slot
-
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
-ui :: forall m. H.Component HH.HTML Input Unit Void m
+
+type State = Unit
+
+data Input a = Noop a
+
+data Slot = Slot
+
+
+ui :: forall e. H.Component HH.HTML Input Unit Void e
 ui = H.component
   { initialState: const unit
   , render
@@ -28,5 +30,5 @@ ui = H.component
         , HH.p_  [ HH.text "wow you lift a LOT" ]
         ]
 
-    eval :: Input ~> H.ComponentDSL State Input Void m
+    eval :: Input ~> H.ComponentDSL State Input Void e
     eval (Noop n) = pure n

@@ -1,7 +1,7 @@
 module Components.Router where
 
+import Components.Login (LoginEff)
 import Components.Chat as Chat
-import Components.Login as Login
 import Components.Navbar as Navbar
 import Components.Sessions as Sessions
 import Halogen.Aff as HA
@@ -23,6 +23,15 @@ import Routing (matchesAff)
 import Routing.Match (Match)
 import Routing.Match.Class (lit, num)
 
+
+type QueryP     = Coproduct  Input ChildQuery
+type ChildQuery = Coproduct3 Sessions.Input Navbar.Input Chat.Input
+type ChildSlot  = Either3    Sessions.Slot  Navbar.Slot  Chat.Slot
+
+type State =
+  { currentPage :: String
+  }
+
 data Input a
   = Goto Routes a
   | IncomingMessage String a
@@ -39,28 +48,10 @@ data Routes
   | Home
 
 data Output
-  = OutputMessage String                 
-
-type State =
-  { currentPage :: String
-  }
-
-type QueryP     = Coproduct Input ChildQuery
-type ChildQuery = Coproduct3 Sessions.Input Navbar.Input Chat.Input
-type ChildSlot  = Either3    Sessions.Slot  Navbar.Slot  Chat.Slot
+  = OutputMessage String
 
 
-routing :: Match Routes
-routing = chat <|> sessions <|> home
-  where
-    chat      = Chat <$ route "chat"
-    home      = Home <$ lit ""
-    sessions  = Sessions <$> (route "sessions" *> parseCRUD)
-    route str = lit "" *> lit str
-    parseCRUD = Show <$> num <|> pure Index
-
-
-ui :: forall eff. Component HTML Input Unit Output (Login.LoginEff eff)
+ui :: forall e. Component HTML Input Unit Output (LoginEff e)
 ui = parentComponent
   { initialState: const { currentPage: "Home" }
   , render
@@ -68,19 +59,19 @@ ui = parentComponent
   , receiver: const Nothing
   }
   where
-  render :: State -> ParentHTML Input ChildQuery ChildSlot (Login.LoginEff eff)
-  render st =
+  render :: State -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
+  render state =
     div_
-      [ slot' pathToNavbar Navbar.Slot Navbar.ui unit (HE.input HandleNavbar)
-      , viewPage st.currentPage
+      [ slot' pathToNavbar Navbar.Slot Navbar.ui unit $ HE.input HandleNavbar
+      , viewPage state.currentPage
       ]
 
-  viewPage :: String -> ParentHTML Input ChildQuery ChildSlot (Login.LoginEff eff)
-  viewPage "Sessions" = slot' cp1 Sessions.Slot Sessions.ui unit absurd
-  viewPage "Chat"     = slot' pathToChat Chat.Slot Chat.ui "" (HE.input HandleChat)
+  viewPage :: String -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
+  viewPage "Sessions" = slot' cp1    Sessions.Slot Sessions.ui unit absurd
+  viewPage "Chat"     = slot' pathToChat Chat.Slot Chat.ui "" $ HE.input HandleChat
   viewPage _          = div_ [ text "Du är hemma"]
 
-  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (Login.LoginEff eff)
+  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (LoginEff e)
   eval (Goto Chat next) = do
     modify (_ { currentPage = "Chat" })
     pure next
@@ -94,17 +85,27 @@ ui = parentComponent
     modify (_ { currentPage = "Home" })
     pure next
   eval (IncomingMessage text next) = do
-    let msgtext = "Received: " <> text
-    _ <- query' pathToChat Chat.Slot (request (Chat.AddMessage msgtext))
+    let logtext = "Received: " <> text
+    _ <- query' pathToChat Chat.Slot (request (Chat.AddMessage logtext))
     pure next
   eval (HandleNavbar (Navbar.SetPage page) next) = do
     pure next
   eval (HandleNavbar (Navbar.GotToken token) next) = do
     raise $ OutputMessage token
     pure next
-  eval (HandleChat (Chat.OutputMessage msg) next) = do
-    raise $ OutputMessage msg
+  eval (HandleChat (Chat.OutputMessage text) next) = do
+    raise $ OutputMessage text
     pure next
+
+
+routing :: Match Routes
+routing = chat <|> sessions <|> home
+  where
+    chat      = Chat <$ route "chat"
+    home      = Home <$ lit ""
+    sessions  = Sessions <$> (route "sessions" *> parseCRUD)
+    route str = lit "" *> lit str
+    parseCRUD = Show <$> num <|> pure Index
 
 pathToSessions :: ChildPath Sessions.Input ChildQuery Sessions.Slot ChildSlot
 pathToSessions = cp1
@@ -115,13 +116,14 @@ pathToNavbar = cp2
 pathToChat :: ChildPath Chat.Input ChildQuery Chat.Slot ChildSlot
 pathToChat = cp3
 
-routeSignal :: forall eff. HalogenIO Input Output (Aff (HA.HalogenEffects eff))
-            -> Aff (HA.HalogenEffects eff) Unit
+routeSignal :: forall e. HalogenIO Input Output
+                         (Aff (HA.HalogenEffects e))
+                       -> Aff (HA.HalogenEffects e) Unit
 routeSignal driver = do
   Tuple old new <- matchesAff routing
   redirects driver old new
 
-redirects :: forall eff. HalogenIO Input Output (Aff (HA.HalogenEffects eff))
-          -> Maybe Routes -> Routes -> Aff (HA.HalogenEffects eff) Unit
+redirects :: forall e. HalogenIO Input Output (Aff (HA.HalogenEffects e))
+                  -> Maybe Routes -> Routes -> Aff (HA.HalogenEffects e) Unit
 redirects driver _ =
   Goto >>> action >>> driver.query

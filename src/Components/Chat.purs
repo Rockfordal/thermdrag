@@ -20,12 +20,23 @@ import Network.HTTP.ResponseHeader (ResponseHeader)
 import Network.HTTP.StatusCode (StatusCode)
 import Prelude (class Eq, class Ord, type (~>), Unit, const, discard, map, pure, ($), (<>), bind, show)
 
+derive instance eqSlot  :: Eq Slot
+derive instance ordSlot :: Ord Slot
+
+
+type TextMsg =
+  { username :: String
+  , roomname :: String
+  , payload  :: String
+  , typ      :: String
+  }
+
 type State =
-  { messages :: Array String
+  { messages  :: Array String
   , inputText :: String
-  , room :: String
-  , username :: String
-  -- , rooms :: List String
+  , room      :: String
+  , username  :: String
+  -- , rooms  :: List String
   }
 
 data Input a
@@ -35,22 +46,13 @@ data Input a
   | SendMessage a
   | GetRooms a
 
-data Output
-  = OutputMessage String                 
-
 data Slot = Slot
 
-derive instance eqSlot  :: Eq Slot
-derive instance ordSlot :: Ord Slot
+data Output
+  = OutputMessage String
 
-type TextMsg =
-  { username :: String
-  , roomname :: String
-  , payload  :: String
-  , typ      :: String
-  }
 
-ui :: forall eff. Component HTML Input String Output (Aff (ajax :: AJAX | eff))
+ui :: forall e. Component HTML Input String Output (Aff (ajax :: AJAX | e))
 ui =
   component
     { initialState: const initialState
@@ -59,6 +61,7 @@ ui =
     , receiver: HE.input UpdateInputText
     }
   where
+
   initialState :: State
   initialState = { messages: [], inputText: "", room: "", username: "andersl" }
 
@@ -84,11 +87,11 @@ ui =
       , input
           [ type_ HP.InputText
           , class_ B.formControl
-          , value (state.inputText)
+          , value state.inputText
           , HE.onValueInput (HE.input UpdateInputText) ]
       ]
 
-  eval :: Input ~> ComponentDSL State Input Output (Aff (ajax :: AJAX | eff))
+  eval :: Input ~> ComponentDSL State Input Output (Aff (ajax :: AJAX | e))
   eval (UpdateInputText text next) = do
     modify (_ { inputText = text })
     pure next
@@ -97,21 +100,25 @@ ui =
     modify (_ { room = room })
     pure next
   eval (SendMessage next) = do
-    state <- get
-    let logmsg = "Sending: " <> state.inputText
-    let out = showTextMsg { username: state.username, payload: state.inputText, roomname: state.room, typ: "msg"}
-    raise $ OutputMessage out
-    modify \st -> st
-      { messages = st.messages `A.snoc` logmsg
-      , inputText = "" }
-    pure next              
+    st <- get
+    raise $ OutputMessage $
+      showTextMsg { username: st.username
+                  , payload:  st.inputText
+                  , roomname: st.room
+                  , typ: "msg" }
+    let logtext = "Sending: " <> st.inputText
+    modify \state -> state
+       { messages  = state.messages `A.snoc` logtext
+       , inputText = "" }
+    pure next
   eval (AddMessage text reply) = do
-    modify \st -> st { messages = st.messages `A.snoc` text }
+    modify \state -> state
+        { messages = state.messages `A.snoc` text }
     pure (reply "")
   eval (GetRooms next) = do
 --     token <- H.gets _.token
 --     result <- H.liftAff $ getit token
---     let _ = result.response :: String
+--     let _ = result.response :: String  -- required for compiler to understand type
 --     case result.status of
 --       StatusCode 200 -> do
 --         H.modify (_ { token = Nothing })
@@ -120,17 +127,18 @@ ui =
     pure next
 
 
-getit :: forall r eff. Respondable r => Maybe String -> Aff ( ajax :: AJAX | eff)
-              { status :: StatusCode , headers :: Array ResponseHeader, response :: r }
-getit jwt = affjax $ rekvest jwt
+getit :: forall r e. Respondable r => Maybe String -> Aff ( ajax :: AJAX | e)
+          { status :: StatusCode, headers :: Array ResponseHeader, response :: r }
+getit jwt =
+  affjax $ rekvest jwt
 
 
 rekvest :: Maybe String -> AffjaxRequest Unit
 rekvest jwt = defaultRequest
-            { url = roomsUrl
-            , method = Left GET
-            , headers = [ RequestHeader "Authorization" $ "Bearer " <> (fromMaybe "" jwt) 
-                        , ContentType applicationJSON ] }
+  { url = roomsUrl
+  , method = Left GET
+  , headers = [ RequestHeader "Authorization" $ "Bearer " <> (fromMaybe "" jwt)
+              , ContentType applicationJSON ] }
 
 roomsUrl :: String
 roomsUrl = baseUrl <> "/api/rooms"
@@ -139,7 +147,8 @@ baseUrl :: String
 baseUrl = "http://localhost:8081"
 
 showTextMsg :: TextMsg -> String
-showTextMsg msg = "{" <> show "username" <> ":" <> show msg.username <>
-                  "," <> show "payload"  <> ":" <> show msg.payload <>
-                  "," <> show "roomname" <> ":" <> show msg.roomname <>
-                  "," <> show "type"     <> ":" <> show msg.typ <> "}"
+showTextMsg msg =
+  "{" <> show "username" <> ":" <> show msg.username <>
+  "," <> show "payload"  <> ":" <> show msg.payload <>
+  "," <> show "roomname" <> ":" <> show msg.roomname <>
+  "," <> show "type"     <> ":" <> show msg.typ <> "}"

@@ -21,8 +21,9 @@ wsUrl :: String
 wsUrl = "ws://46.162.127.62:8081"
 
 -- A producer coroutine that emits messages that arrive from the websocket.
-wsProducer :: forall eff . WS.Connection
-  -> CR.Producer String (Aff (avar :: AVAR, err :: EXCEPTION, ajax :: AJAX, ws :: WS.WEBSOCKET | eff)) Unit
+wsProducer :: forall e . WS.Connection
+                      -> CR.Producer String (Aff (avar :: AVAR, err :: EXCEPTION
+                                                , ajax :: AJAX, ws  :: WS.WEBSOCKET | e)) Unit
 wsProducer (WS.Connection socket) =
   CRA.produce \emit -> do
       socket.onmessage $= \event -> do
@@ -31,8 +32,8 @@ wsProducer (WS.Connection socket) =
 
 -- Consumer coroutine takes the `query` function from our component IO
 -- record and sends `AddMessage` queries in when it receives inputs from producer
-wsConsumer :: forall eff . (Router.Input ~> Aff (HA.HalogenEffects eff))
-  -> CR.Consumer String (Aff (HA.HalogenEffects eff)) Unit
+wsConsumer :: forall e. (Router.Input ~> Aff (HA.HalogenEffects e))
+                  -> CR.Consumer String (Aff (HA.HalogenEffects e)) Unit
 wsConsumer query =
   CR.consumer \msg -> do
     query $ action $ Router.IncomingMessage msg
@@ -40,8 +41,9 @@ wsConsumer query =
 
 
 -- Consumer coroutine takes output messages from our component IO, sends with websocket
-wsSender :: forall eff . WS.Connection
-  -> CR.Consumer Router.Output (Aff (HA.HalogenEffects (ws :: WS.WEBSOCKET, ajax :: AJAX, err :: EXCEPTION | eff))) Unit    
+wsSender :: forall e . WS.Connection -> CR.Consumer Router.Output
+                      (Aff (HA.HalogenEffects (ws  :: WS.WEBSOCKET, ajax :: AJAX
+                                             , err :: EXCEPTION | e))) Unit
 wsSender (WS.Connection socket) = CR.consumer \msg -> do
   case msg of
     Router.OutputMessage msgContents -> do
@@ -50,7 +52,8 @@ wsSender (WS.Connection socket) = CR.consumer \msg -> do
   pure Nothing
 
 
-containerapp :: Eff (HA.HalogenEffects (ws :: WS.WEBSOCKET, ajax :: AJAX, err :: EXCEPTION)) Unit
+containerapp :: Eff (HA.HalogenEffects (ws  :: WS.WEBSOCKET, ajax :: AJAX
+                                      , err :: EXCEPTION)) Unit
 containerapp = do
   conn <- WS.newWebSocket (WS.URL wsUrl) []
   HA.runHalogenAff do
@@ -58,13 +61,13 @@ containerapp = do
     io   <- runUI Router.ui unit body
     _    <- forkAff $ Router.routeSignal io
 
-    -- The wsSender consumer subscribes to all output messages from our component
+    -- wsSender subscribes to our components output messages
     io.subscribe $ wsSender conn
 
-    -- If we want to trigger an action
-    -- io.query $ H.action $ B.Toggle        
+    -- If we cant we can trigger an action
+    -- io.query $ H.action $ B.Toggle
 
-    -- Connecting the consumer to the producer initializes both,
-    -- feeding queries back to our component as messages are received.
+    -- We feed queries back to our component
+    -- Connectiong consumer to producer
+    -- Both will be initialized
     CR.runProcess (wsProducer conn CR.$$ wsConsumer io.query)
-    -- CR.runProcess (hashChangeProducer CR.$$ hashChangeConsumer io.query)

@@ -6,38 +6,39 @@ import Halogen.Themes.Bootstrap3 as B
 import Data.Array ((:))
 import Data.Maybe (Maybe(..))
 import Data.String (toLower)
-import Halogen (Component, modify, raise)
+import Halogen (Component, put, raise)
 import Halogen.Component (ParentDSL, ParentHTML, parentComponent)
 import Halogen.HTML (HTML, a, div, li_, nav, slot, text, ul)
 import Halogen.HTML.Properties (class_, classes, href)
 import Prelude (class Eq, class Ord, type (~>), Unit, const, discard, map, pure, unit, ($), (<>))
 
-type State =
-  { dummy :: Boolean }
+derive instance eqSlot  :: Eq Slot
+derive instance ordSlot :: Ord Slot
+
+
+type State = Boolean
 
 data Input a
   = UpdateInputText String a
   | HandleLogin Login.Output a
 
-data Output
-  = SetPage String                 
-  | GotToken String                 
-
 data Slot = Slot
 
-derive instance eqSlot  :: Eq Slot
-derive instance ordSlot :: Ord Slot
+data Output
+  = SetPage  String
+  | GotToken String
 
-ui :: forall eff. Component HTML Input Unit Output (Login.LoginEff eff)
+
+ui :: forall e. Component HTML Input Unit Output (Login.LoginEff e)
 ui =
   parentComponent
-    { initialState: const { dummy: false }
+    { initialState: const false
     , render
     , eval
     , receiver: const Nothing
     }
   where
-  render :: State -> ParentHTML Input Login.Input Login.Slot (Login.LoginEff eff)
+  render :: State -> ParentHTML Input Login.Input Login.Slot (Login.LoginEff e)
   render state =
     nav [ classes [ B.navbarNav, B.navbarFixedTop, B.navbarInverse] ]
       [ container_
@@ -55,9 +56,9 @@ ui =
   container attrs = div (class_ B.container : attrs)
   container_ = container []
 
-  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginEff eff)
+  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginEff e)
   eval (UpdateInputText text next) = do
-    modify (_ { dummy = true })
+    put true
     pure next
   eval (HandleLogin (Login.GotToken token) next) = do
     raise $ GotToken token

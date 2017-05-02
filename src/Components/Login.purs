@@ -24,10 +24,22 @@ import Network.HTTP.RequestHeader (RequestHeader(..))
 import Network.HTTP.ResponseHeader (ResponseHeader)
 import Network.HTTP.StatusCode (StatusCode(..))
 
+derive instance eqSlot  :: Eq Slot
+derive instance ordSlot :: Ord Slot
+
+instance encodeJsonCred :: EncodeJson Cred where
+  encodeJson (Cred cred)
+    =  "username" := (fst cred)
+    ~> "password" := (snd cred)
+    ~> jsonEmptyObject
+
+
+type LoginEff e = Aff (ajax :: AJAX | e)
+
 type State =
   { username :: String
   , password :: String
-  , token :: Maybe String
+  , token    :: Maybe String
   }
 
 data Input a
@@ -36,26 +48,15 @@ data Input a
   | SendLogin a
   | SendLogout a
 
-data Output
-  = GotToken String                 
-
 data Cred = Cred (Tuple String String)
 
 data Slot = Slot
 
-instance encodeJsonCred :: EncodeJson Cred where
-  encodeJson (Cred cred)
-    =  "username" := (fst cred)
-    ~> "password" := (snd cred)
-    ~> jsonEmptyObject
-
-derive instance eqSlot :: Eq Slot
-derive instance ordSlot :: Ord Slot
-
-type LoginEff eff = Aff (ajax :: AJAX | eff)
+data Output
+  = GotToken String
 
 
-ui :: forall eff. Component HTML Input Unit Output (LoginEff eff)
+ui :: forall e. Component HTML Input Unit Output (LoginEff e)
 ui =
   component
     { initialState: const initialState
@@ -69,7 +70,7 @@ ui =
                  , password: ""
                  , token: Nothing
                  }
-  
+
   render :: State -> ComponentHTML Input
   render state =
     form [ classes [ navbarForm, navbarRight]]
@@ -82,20 +83,20 @@ ui =
               , placeholder "Användarnamn"
               , value state.username
               , class_ formControl
-              , HE.onValueInput (HE.input UpdateUsername) ] 
+              , HE.onValueInput (HE.input UpdateUsername) ]
             , input
               [ type_ InputPassword
               , placeholder "Lösenord"
               , value state.password
               , class_ formControl
-              , HE.onValueInput (HE.input UpdatePassword) ] 
+              , HE.onValueInput (HE.input UpdatePassword) ]
             , button
               [ type_ ButtonSubmit
               , classes [ btn, btnSuccess]
               , HE.onClick (HE.input_ SendLogin) ]
               [ text "Logga in " ]
-            ] 
-          ] 
+            ]
+          ]
         Just token ->
           [ button
             [ HE.onClick (HE.input_ SendLogout)
@@ -103,7 +104,7 @@ ui =
             ] [ text "Logga ut " ]
           ]
 
-  eval :: Input ~> ComponentDSL State Input Output (LoginEff eff)
+  eval :: Input ~> ComponentDSL State Input Output (LoginEff e)
   eval (UpdateUsername text next) = do
     modify (_ { username = text })
     pure next
@@ -144,16 +145,16 @@ mreadtoken response =
         _ -> Nothing
     _ -> Nothing
 
-getit :: forall r eff. Respondable r => Maybe String -> Aff (ajax :: AJAX | eff)
+getit :: forall r e. Respondable r => Maybe String -> Aff (ajax :: AJAX | e)
          { status :: StatusCode, headers :: Array ResponseHeader, response :: r }
 getit jwt = affjax $ rekvest jwt
 
 rekvest :: Maybe String -> AffjaxRequest Unit
 rekvest jwt = defaultRequest
-            { url = logoutUrl
-            , method = Left GET
-            , headers = [ RequestHeader "Authorization" $ "Bearer " <> (fromMaybe "" jwt) 
-                        , ContentType applicationJSON ] }
+  { url = logoutUrl
+  , method = Left GET
+  , headers = [ RequestHeader "Authorization" $ "Bearer " <> (fromMaybe "" jwt)
+              , ContentType applicationJSON ] }
 
 loginUrl :: String
 loginUrl = baseUrl <> "/api/login"
