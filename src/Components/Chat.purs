@@ -10,7 +10,7 @@ import Halogen.HTML.Properties (InputType(InputText), class_, type_, value)
 import Halogen.HTML.Events as HE
 import Network.HTTP.Affjax (AJAX)
 import Halogen.Themes.Bootstrap3
-import Prelude (class Eq, class Ord, type (~>), const, discard, map, pure, ($), (<>), bind, show)
+import Prelude (class Eq, class Ord, type (~>), bind, const, discard, map, pure, show, ($), (<>))
 
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
@@ -124,8 +124,8 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
 
 
 showTextMsg :: TextMsg -> String
-showTextMsg msg =
-  "{" <> show "username" <> ":" <> show msg.username <>
-  "," <> show "payload"  <> ":" <> show msg.payload <>
-  "," <> show "roomname" <> ":" <> show msg.roomname <>
-  "," <> show "type"     <> ":" <> show msg.typ <> "}"
+showTextMsg m =
+  "{" <> show "username" <> ":" <> show m.username <>
+  "," <> show "payload"  <> ":" <> show m.payload <>
+  "," <> show "roomname" <> ":" <> show m.roomname <>
+  "," <> show "type"     <> ":" <> show m.typ <> "}"
