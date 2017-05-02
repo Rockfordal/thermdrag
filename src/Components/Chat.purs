@@ -87,7 +87,7 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
     pure next
 
   eval (JoinRoom room next) = do
-    raise $ OutputMessage $ """{"type":"join","roomname":""" <> "\"" <> room <> "\"" <> "}"
+    raise $ OutputMessage $ showJoinRoom room
     modify (_ { room = room })
     pure next
 
@@ -97,7 +97,8 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
       showTextMsg { username: st.username
                   , payload:  st.inputText
                   , roomname: st.room
-                  , typ: "msg" }
+                  , typ: "msg"
+                  }
     let logtext = "Sending: " <> st.inputText
     modify \state -> state
        { messages  = state.messages `A.snoc` logtext
@@ -129,3 +130,8 @@ showTextMsg m =
   "," <> show "payload"  <> ":" <> show m.payload <>
   "," <> show "roomname" <> ":" <> show m.roomname <>
   "," <> show "type"     <> ":" <> show m.typ <> "}"
+
+
+showJoinRoom :: String -> String
+showJoinRoom room =
+  """{"type":"join","roomname":""" <> "\"" <> room <> "\"" <> "}"
