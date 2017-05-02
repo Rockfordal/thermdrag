@@ -1,12 +1,12 @@
 module Components.Button where
 
-import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
 import Halogen.HTML.Events as HE
 import Halogen.HTML.Properties as HP
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe(Nothing))
 import Halogen (Component, component, get, put, raise)
 import Halogen.Component (ComponentHTML, ComponentDSL)
 import Halogen.HTML (HTML, button, text)
+import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
 
 
 type State = Boolean

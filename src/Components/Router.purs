@@ -1,23 +1,23 @@
 module Components.Router where
 
-import Components.Login (LoginEff)
 import Components.Chat as Chat
 import Components.Navbar as Navbar
 import Components.Sessions as Sessions
-import Halogen.Aff as HA
-import Halogen.HTML.Events as HE
+import Components.Login (LoginEff)
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff)
 import Control.Monad.State.Class (modify)
 import Data.Either.Nested (Either3)
 import Data.Functor.Coproduct (Coproduct)
 import Data.Functor.Coproduct.Nested (Coproduct3)
-import Data.Maybe (Maybe(..))
-import Data.Tuple (Tuple(..))
+import Data.Maybe (Maybe(Nothing))
+import Data.Tuple (Tuple(Tuple))
 import Halogen (Component, HalogenIO, action, parentComponent, query', raise, request)
+import Halogen.Aff.Effects (HalogenEffects)
 import Halogen.Component (ParentHTML, ParentDSL)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3)
 import Halogen.HTML (HTML, div_, slot', text)
+import Halogen.HTML.Events as HE
 import Prelude (type (~>), Unit, absurd, bind, const, discard, pure, show, unit, ($), (*>), (<$), (<$>), (<>), (>>>))
 import Routing (matchesAff)
 import Routing.Match (Match)
@@ -52,13 +52,10 @@ data Output
 
 
 ui :: forall e. Component HTML Input Unit Output (LoginEff e)
-ui = parentComponent
-  { initialState: const { currentPage: "Home" }
-  , render
-  , eval
-  , receiver: const Nothing
-  }
+ui = parentComponent { initialState: const initial, render, eval, receiver: const Nothing }
   where
+  initial = { currentPage: "Home" }
+
   render :: State -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
   render state =
     div_
@@ -69,30 +66,36 @@ ui = parentComponent
   viewPage :: String -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
   viewPage "Sessions" = slot' cp1    Sessions.Slot Sessions.ui unit absurd
   viewPage "Chat"     = slot' pathToChat Chat.Slot Chat.ui "" $ HE.input HandleChat
-  viewPage _          = div_ [ text "Du är hemma"]
+  viewPage _          = div_ [ text "Du är hemma" ]
 
   eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (LoginEff e)
   eval (Goto Chat next) = do
     modify (_ { currentPage = "Chat" })
     pure next
+
   eval (Goto (Sessions view) next) = do
     modify case view of
       Index  -> (_ { currentPage = "Sessions" })
       Show n -> (_ { currentPage = "Session " <> show n })
     pure next
+
   eval (Goto Home next) = do
     raise $ OutputMessage "We went somewhere!"
     modify (_ { currentPage = "Home" })
     pure next
+
   eval (IncomingMessage text next) = do
     let logtext = "Received: " <> text
-    _ <- query' pathToChat Chat.Slot (request (Chat.AddMessage logtext))
+    _ <- query' pathToChat Chat.Slot $ request (Chat.AddMessage logtext)
     pure next
+
   eval (HandleNavbar (Navbar.SetPage page) next) = do
     pure next
+
   eval (HandleNavbar (Navbar.GotToken token) next) = do
     raise $ OutputMessage token
     pure next
+
   eval (HandleChat (Chat.OutputMessage text) next) = do
     raise $ OutputMessage text
     pure next
@@ -117,13 +120,13 @@ pathToChat :: ChildPath Chat.Input ChildQuery Chat.Slot ChildSlot
 pathToChat = cp3
 
 routeSignal :: forall e. HalogenIO Input Output
-                         (Aff (HA.HalogenEffects e))
-                       -> Aff (HA.HalogenEffects e) Unit
+                         (Aff (HalogenEffects e))
+                       -> Aff (HalogenEffects e) Unit
 routeSignal driver = do
   Tuple old new <- matchesAff routing
   redirects driver old new
 
-redirects :: forall e. HalogenIO Input Output (Aff (HA.HalogenEffects e))
-                  -> Maybe Routes -> Routes -> Aff (HA.HalogenEffects e) Unit
+redirects :: forall e. HalogenIO Input Output (Aff (HalogenEffects e))
+                  -> Maybe Routes -> Routes -> Aff (HalogenEffects e) Unit
 redirects driver _ =
   Goto >>> action >>> driver.query

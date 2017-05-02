@@ -1,8 +1,9 @@
 module Components.Sessions where
 
-import Data.Maybe (Maybe(..))
-import Halogen as H
-import Halogen.HTML as HH
+import Data.Maybe (Maybe(Nothing))
+import Halogen (Component, component)
+import Halogen.Component (ComponentDSL)
+import Halogen.HTML (HTML, div_, h1_, p_, text)
 import Prelude (class Eq, class Ord, type (~>), Unit, Void, const, pure, unit)
 
 derive instance eqSlot  :: Eq Slot
@@ -16,19 +17,17 @@ data Input a = Noop a
 data Slot = Slot
 
 
-ui :: forall e. H.Component HH.HTML Input Unit Void e
-ui = H.component
-  { initialState: const unit
-  , render
-  , eval
-  , receiver: const Nothing
-  }
+ui :: forall e. Component HTML Input Unit Void e
+ui = component { initialState: const initial, render, eval, receiver: const Nothing }
   where
+    initial = unit
+
     render _ =
-      HH.div_
-        [ HH.h1_ [ HH.text "Your Sessions" ]
-        , HH.p_  [ HH.text "wow you lift a LOT" ]
+      div_
+        [ h1_ [ text "Your Sessions" ]
+        , p_  [ text "wow you lift a LOT" ]
         ]
 
-    eval :: Input ~> H.ComponentDSL State Input Void e
+    eval :: Input ~> ComponentDSL State Input Void e
     eval (Noop n) = pure n
+
