@@ -15,7 +15,6 @@ import Prelude (class Eq, class Ord, type (~>), bind, const, discard, map, pure,
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
-
 type AjaxEff e = Aff (ajax :: AJAX | e)
 
 type TextMsg =

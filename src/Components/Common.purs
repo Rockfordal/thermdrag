@@ -34,9 +34,9 @@ getit jwt url =
         ]
       }
 
-parsetoken :: Foreign → Maybe String
-parsetoken resp =
-  case runExcept $ readProp "access_token" resp of
+parsetoken :: Foreign → String -> Maybe String
+parsetoken resp prop =
+  case runExcept $ readProp prop resp of
     Right fs ->
       case runExcept $ readString fs of
         Right s -> Just s

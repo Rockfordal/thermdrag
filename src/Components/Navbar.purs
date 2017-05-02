@@ -1,7 +1,7 @@
 module Components.Navbar where
 
 import Components.Login as Login
-import Components.Helpers (container_, navlink)
+import Components.ViewHelpers (container_, navlink)
 import Data.Maybe (Maybe(Nothing))
 import Halogen.Themes.Bootstrap3 as B
 import Halogen (Component, put, raise)
@@ -13,7 +13,6 @@ import Prelude (class Eq, class Ord, type (~>), Unit, const, discard, map, pure,
 
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
-
 
 type State = Boolean
 

@@ -23,7 +23,6 @@ import Routing (matchesAff)
 import Routing.Match (Match)
 import Routing.Match.Class (lit, num)
 
-
 type QueryP     = Coproduct  Input ChildQuery
 type ChildQuery = Coproduct3 Sessions.Input Navbar.Input Chat.Input
 type ChildSlot  = Either3    Sessions.Slot  Navbar.Slot  Chat.Slot
@@ -63,9 +62,8 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
       , viewPage state.currentPage
       ]
 
-  viewPage :: String -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
-  viewPage "Sessions" = slot' cp1    Sessions.Slot Sessions.ui unit absurd
-  viewPage "Chat"     = slot' pathToChat Chat.Slot Chat.ui "" $ HE.input HandleChat
+  viewPage "Sessions" = slot' pathToSessions Sessions.Slot Sessions.ui unit absurd
+  viewPage "Chat"     = slot' pathToChat     Chat.Slot     Chat.ui     "" $ HE.input HandleChat
   viewPage _          = div_ [ text "Du är hemma" ]
 
   eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (LoginEff e)

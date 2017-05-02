@@ -17,15 +17,14 @@ import Network.HTTP.Affjax (AJAX)
 import Network.HTTP.StatusCode (StatusCode(StatusCode))
 import Prelude (class Eq, class Ord, type (~>), Unit, bind, const, discard, pure, unit, ($), (<>))
 
-derive instance eqSlot  :: Eq Slot
-derive instance ordSlot :: Ord Slot
-
 instance encodeJsonCred :: EncodeJson Cred where
   encodeJson (Cred cred)
     =  "username" := (fst cred)
     ~> "password" := (snd cred)
     ~> jsonEmptyObject
 
+derive instance eqSlot  :: Eq Slot
+derive instance ordSlot :: Ord Slot
 
 type LoginEff e = Aff (ajax :: AJAX | e)
 
@@ -103,7 +102,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
     password <- gets _.password
     let payload = encodeJson $ Cred (Tuple username password)
     result <- postit loginUrl payload
-    let resp = parsetoken result.response
+    let resp = parsetoken result.response "access_token"
     case resp of
       Just token -> do
         modify (_ { token = resp })

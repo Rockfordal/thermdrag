@@ -8,7 +8,6 @@ import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, button, text)
 import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
 
-
 type State = Boolean
 
 data Input a

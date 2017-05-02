@@ -2,7 +2,6 @@ module Components.Config where
 
 import Prelude ((<>))
 
-
 wsUrl :: String
 wsUrl = "ws://" <> cidr
 

@@ -9,7 +9,6 @@ import Prelude (class Eq, class Ord, type (~>), Unit, Void, const, pure, unit)
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
-
 type State = Unit
 
 data Input a = Noop a

@@ -1,4 +1,4 @@
-module Components.Helpers where
+module Components.ViewHelpers where
 
 import Halogen.Themes.Bootstrap3 as B
 import DOM.HTML.Indexed (HTMLdiv)
