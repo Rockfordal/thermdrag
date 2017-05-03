@@ -29,6 +29,8 @@ derive instance ordSlot :: Ord Slot
 
 type LoginAff e = Aff (ajax :: AJAX | e)
 
+type DSL e = ComponentDSL State Input Output (LoginAff e)
+
 type State =
   { username :: String
   , password :: String
@@ -45,8 +47,7 @@ data Cred = Cred (Tuple String String)
 
 data Slot = Slot
 
-data Output
-  = GotToken String
+data Output = GotToken String
 
 
 ui :: forall e. Component HTML Input Unit Output (LoginAff e)
@@ -90,13 +91,13 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
             ] [ text "Logga ut " ] ]
 
 
-  eval :: Input ~> ComponentDSL State Input Output (LoginAff e)
-  eval (UpdateUsername text next) = do
-    modify (_ { username = text })
+  eval :: Input ~> DSL e
+  eval (UpdateUsername u next) = do
+    modify (_ { username = u })
     pure next
 
-  eval (UpdatePassword text next) = do
-    modify (_ { password = text })
+  eval (UpdatePassword p next) = do
+    modify (_ { password = p })
     pure next
 
   eval (SendLogin next) = do

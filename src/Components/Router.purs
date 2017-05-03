@@ -17,7 +17,7 @@ import Data.Maybe (Maybe(Nothing))
 import Data.Tuple (Tuple(Tuple))
 import Halogen (Component, HalogenIO, action, parentComponent, query', raise, request)
 import Halogen.Aff.Effects (HalogenEffects)
-import Halogen.Component (ParentHTML, ParentDSL)
+import Halogen.Component (ParentDSL)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3, cp4)
 import Halogen.HTML (HTML, div_, slot', text)
 import Network.HTTP.Affjax (AJAX)
@@ -25,6 +25,10 @@ import Prelude (type (~>), Unit, absurd, bind, const, discard, pure, show, unit,
 import Routing (matchesAff)
 import Routing.Match (Match)
 import Routing.Match.Class (lit, num)
+
+type RouterAff e = Aff (ajax :: AJAX, dom :: DOM | e)
+
+type DSL e = ParentDSL State Input ChildQuery ChildSlot Output (RouterAff e)
 
 type QueryP     = Coproduct  Input ChildQuery
 type ChildQuery = Coproduct4 Navbar.Input Chat.Input Draw.Input Sessions.Input
@@ -54,8 +58,6 @@ data Routes
 data Output
   = OutputMessage String
 
-type RouterAff e = Aff (ajax :: AJAX, dom :: DOM | e)
-
 
 ui :: forall e. Component HTML Input Unit Output (RouterAff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: const Nothing }
@@ -65,7 +67,6 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
     , pages: ["Chat", "Draw"]
     }
 
-  render :: State -> ParentHTML Input ChildQuery ChildSlot (RouterAff e)
   render state =
     div_
       [ slot' pathToNavbar Navbar.Slot Navbar.ui state.pages $ HE.input HandleNavbar
@@ -77,16 +78,11 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
   viewPage "Chat"     = slot' pathToChat     Chat.Slot     Chat.ui     "" $ HE.input HandleChat
   viewPage _          = div_ [ text "Du är hemma" ]
 
-  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (RouterAff e)
-  eval (Goto Home next) = do
-    modify (_ { currentPage = "Home" })
-    pure next
-  eval (Goto Chat next) = do
-    modify (_ { currentPage = "Chat" })
-    pure next
-  eval (Goto Draw next) = do
-    modify (_ { currentPage = "Draw" })
-    pure next
+
+  eval :: Input ~> DSL e
+  eval (Goto Home next) = modify (_ { currentPage = "Home" }) *> pure next
+  eval (Goto Chat next) = modify (_ { currentPage = "Chat" }) *> pure next
+  eval (Goto Draw next) = modify (_ { currentPage = "Draw" }) *> pure next
   eval (Goto (Sessions view) next) = do
     modify case view of
       Index  -> (_ { currentPage = "Sessions" })
@@ -109,6 +105,7 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
     raise $ OutputMessage text
     pure next
 
+
 routing :: Match Routes
 routing = chat <|> draw <|> sessions <|> home
   where
@@ -118,6 +115,7 @@ routing = chat <|> draw <|> sessions <|> home
     sessions  = Sessions <$> (route "sessions" *> parseCRUD)
     route str = lit "" *> lit str
     parseCRUD = Show <$> num <|> pure Index
+
 
 pathToNavbar :: ChildPath Navbar.Input ChildQuery Navbar.Slot ChildSlot
 pathToNavbar = cp1
@@ -131,12 +129,14 @@ pathToDraw = cp3
 pathToSessions :: ChildPath Sessions.Input ChildQuery Sessions.Slot ChildSlot
 pathToSessions = cp4
 
+
 routeSignal :: forall e. HalogenIO Input Output
                          (Aff (HalogenEffects e))
                        -> Aff (HalogenEffects e) Unit
 routeSignal driver = do
   Tuple old new <- matchesAff routing
   redirects driver old new
+
 
 redirects :: forall e. HalogenIO Input Output (Aff (HalogenEffects e))
                   -> Maybe Routes -> Routes -> Aff (HalogenEffects e) Unit

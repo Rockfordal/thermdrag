@@ -13,6 +13,8 @@ import Prelude (class Eq, class Ord, type (~>), Unit, bind, const, discard, not,
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
+type DSL e = ComponentDSL State Input Output e
+
 type State = Boolean
 
 data Input a
@@ -24,7 +26,7 @@ data Slot = Slot
 data Output = NewState Boolean
 
 
-ui :: forall e. Component HTML Input Unit Output e
+ui :: forall e. Component HTML Input Unit Output e -- (Reader GlobalState IO)
 ui = component { initialState: const initial, render, eval, receiver: const Nothing }
   where
   initial = false
@@ -37,7 +39,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
       , class_ btn
       ] [ text label ]
 
-  eval :: Input ~> ComponentDSL State Input Output e
+  eval :: Input ~> DSL e
   eval = case _ of
     Toggle next -> do
       state <- get

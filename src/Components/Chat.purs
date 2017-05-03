@@ -21,6 +21,8 @@ derive instance ordSlot :: Ord Slot
 
 type AjaxEff e = Aff (ajax :: AJAX | e)
 
+type DSL e = ComponentDSL State Input Output (AjaxEff e)
+
 type TextMsg =
   { username :: String
   , roomname :: String
@@ -44,8 +46,7 @@ data Input a
 
 data Slot = Slot
 
-data Output
-  = OutputMessage String
+data Output = OutputMessage String
 
 
 ui :: forall e. Component HTML Input String Output (AjaxEff e)
@@ -84,7 +85,7 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
 
   viewitem m = li_ [ text m ]
 
-  eval :: Input ~> ComponentDSL State Input Output (AjaxEff e)
+  eval :: Input ~> DSL e
   eval (UpdateInputText text next) = do
     modify (_ { inputText = text })
     pure next

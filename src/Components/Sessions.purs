@@ -17,6 +17,10 @@ import Prelude (class Eq, class Ord, type (~>), Void, bind, const, discard, pure
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
+type DomAff e = Aff ( dom :: DOM | e)
+
+type DSL e = ParentDSL State Input Button.Input Button.Slot Void (DomAff e)
+
 type State =
   { knapp :: Boolean
   , antal :: Int
@@ -30,8 +34,6 @@ data Input a
   | Delete a
 
 data Slot = Slot
-
-type DomAff e = Aff ( dom :: DOM | e)
 
 
 initial :: State
@@ -61,7 +63,7 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
         ] [ text "Delete" ]
       ]
 
-  eval :: Input ~> ParentDSL State Input Button.Input Button.Slot Void (DomAff e)
+  eval :: Input ~> DSL e
   eval (Save next) = do
     antal <- gets (\s -> s.antal)
     liftEff $ getSessionDb >>= (setItem "saved" $ show antal)

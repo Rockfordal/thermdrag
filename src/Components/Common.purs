@@ -23,6 +23,7 @@ import Prelude (class Bind, bind, pure, ($), (<>), (=<<))
 
 type Ajax' e = (ajax :: AJAX | e)
 
+
 postit :: ∀  p r e m. Bind m ⇒ MonadAff (Ajax' e) m ⇒ Requestable r ⇒ Respondable p ⇒ String → r → m (AffjaxResponse p)
 postit url payload =
   liftAff $ post url payload
@@ -43,13 +44,11 @@ getit jwt url =
           ]
         }
 
-
 parseResponse :: String -> Foreign -> Either (NonEmptyList ForeignError) String
 parseResponse prop f =
   runExcept $ readString =<< readProp prop f
 
-
-getSessionDb :: forall e. Eff (dom :: DOM | e) Storage
+getSessionDb :: Eff (dom :: DOM) Storage
 getSessionDb = do
   w <- window
   s <- sessionStorage w

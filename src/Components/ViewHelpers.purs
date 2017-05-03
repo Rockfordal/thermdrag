@@ -9,6 +9,7 @@ import Halogen.HTML.Elements (Node)
 import Halogen.HTML.Properties (class_, href)
 import Prelude ((<>))
 
+
 container :: forall p i. Node HTMLdiv p i
 container attrs =
   div (class_ B.container : attrs)

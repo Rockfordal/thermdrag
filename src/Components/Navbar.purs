@@ -13,6 +13,8 @@ import Prelude (class Eq, class Ord, type (~>), const, discard, map, pure, unit,
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
+type DSL e = ParentDSL State Input Login.Input Login.Slot Output (Login.LoginAff e)
+
 type State = Array String
 
 data Input a
@@ -43,7 +45,7 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: HE.i
         ]
       ]
 
-  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginAff e)
+  eval :: Input ~> DSL e
   eval (HandleLogin (Login.GotToken token) next) = do
     raise $ GotToken token
     pure next

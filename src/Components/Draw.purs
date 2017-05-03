@@ -12,10 +12,11 @@ import Prelude (class Eq, class Ord, type (~>), Unit, Void, bind, const, not, pu
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
+type DSL e = ComponentDSL State Input Void e
+
 type State = { on :: Boolean }
 
-data Input a
-  = ToggleState a
+data Input a = ToggleState a
 
 data Slot = Slot
 
@@ -55,7 +56,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
 --           { x: e.pageX # floor, y: e.pageY # floor } ] [ ]
 --     where cc = patchcircle state index oldcircle
 
-  eval :: Input ~> ComponentDSL State Input Void e
+  eval :: Input ~> DSL e
   eval (ToggleState next) = do
     _ <- modify (\state -> state
                 { on = not state.on })
