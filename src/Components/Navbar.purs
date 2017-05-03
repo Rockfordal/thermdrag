@@ -26,10 +26,10 @@ data Output
   | GotToken String
 
 
-ui :: forall e. Component HTML Input State Output (Login.LoginEff e)
+ui :: forall e. Component HTML Input State Output (Login.LoginAff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: HE.input SetPages }
   where
-  initial = ["No page found"]
+  initial = [""]
 
   render state =
     nav [ classes [ B.navbarNav, B.navbarFixedTop, B.navbarInverse] ]
@@ -43,7 +43,7 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: HE.i
         ]
       ]
 
-  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginEff e)
+  eval :: Input ~> ParentDSL State Input Login.Input Login.Slot Output (Login.LoginAff e)
   eval (HandleLogin (Login.GotToken token) next) = do
     raise $ GotToken token
     pure next

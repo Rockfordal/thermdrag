@@ -1,15 +1,19 @@
 module Components.Chat where
 
 -- import Components.Common (restUrl, getit)
+import Halogen.Themes.Bootstrap3
+import Halogen.HTML.Events as HE
+import Components.Common (getit)
+import Components.Config (restUrl)
 import Control.Monad.Aff (Aff)
 import Data.Array (snoc)
-import Halogen (Component, component, get, modify, raise)
+import Data.Maybe (Maybe(..))
+import Halogen (Component, component, get, liftAff, modify, raise)
 import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, br_, button, div_, input, li_, ol_, text)
 import Halogen.HTML.Properties (InputType(InputText), class_, type_, value)
-import Halogen.HTML.Events as HE
 import Network.HTTP.Affjax (AJAX)
-import Halogen.Themes.Bootstrap3
+import Network.HTTP.StatusCode (StatusCode(..))
 import Prelude (class Eq, class Ord, type (~>), bind, const, discard, map, pure, show, ($), (<>))
 
 derive instance eqSlot  :: Eq Slot
@@ -110,17 +114,18 @@ ui = component { initialState: const initial, render, eval, receiver: HE.input U
     pure (reply "")
 
   eval (GetRooms next) = do
---     token <- H.gets _.token
---     result <- H.liftAff $ getit token roomsUrl
---     let _ = result.response :: String  -- required for compiler to understand type
---     case result.status of
---       StatusCode 200 -> do
---         H.modify (_ { token = Nothing })
---       StatusCode i -> do
---         H.modify (_ { inputText = show i })
+    -- token <- get _.token
+    let token = Nothing
+    result <- liftAff $ getit token roomsUrl
+    let _ = result.response :: String  -- required for compiler to understand type
+    case result.status of
+      StatusCode 200 -> do
+        modify (_ { inputText = "ok" })
+      StatusCode i -> do
+        modify (_ { inputText = show i })
     pure next
 
-  -- roomsUrl = restUrl <> "/api/rooms"
+  roomsUrl = restUrl <> "/api/rooms"
 
 
 showTextMsg :: TextMsg -> String
@@ -134,3 +139,4 @@ showTextMsg m =
 showJoinRoom :: String -> String
 showJoinRoom room =
   """{"type":"join","roomname":""" <> "\"" <> room <> "\"" <> "}"
+

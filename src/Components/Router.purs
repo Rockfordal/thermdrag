@@ -4,10 +4,11 @@ import Components.Chat as Chat
 import Components.Draw as Draw
 import Components.Navbar as Navbar
 import Components.Sessions as Sessions
-import Components.Login (LoginEff)
+import Halogen.HTML.Events as HE
 import Control.Alt ((<|>))
 import Control.Monad.Aff (Aff)
 import Control.Monad.State.Class (modify)
+import DOM (DOM)
 import Data.Array (snoc)
 import Data.Either.Nested (Either4)
 import Data.Functor.Coproduct (Coproduct)
@@ -19,7 +20,7 @@ import Halogen.Aff.Effects (HalogenEffects)
 import Halogen.Component (ParentHTML, ParentDSL)
 import Halogen.Component.ChildPath (ChildPath, cp1, cp2, cp3, cp4)
 import Halogen.HTML (HTML, div_, slot', text)
-import Halogen.HTML.Events as HE
+import Network.HTTP.Affjax (AJAX)
 import Prelude (type (~>), Unit, absurd, bind, const, discard, pure, show, unit, ($), (*>), (<$), (<$>), (<>), (>>>))
 import Routing (matchesAff)
 import Routing.Match (Match)
@@ -53,25 +54,30 @@ data Routes
 data Output
   = OutputMessage String
 
+type RouterAff e = Aff (ajax :: AJAX, dom :: DOM | e)
 
-ui :: forall e. Component HTML Input Unit Output (LoginEff e)
+
+ui :: forall e. Component HTML Input Unit Output (RouterAff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: const Nothing }
   where
-  initial = { currentPage: "Home", pages: ["Sessions", "Chat"] }
+  initial =
+    { currentPage: "Home"
+    , pages: ["Chat", "Draw"]
+    }
 
-  render :: State -> ParentHTML Input ChildQuery ChildSlot (LoginEff e)
+  render :: State -> ParentHTML Input ChildQuery ChildSlot (RouterAff e)
   render state =
     div_
       [ slot' pathToNavbar Navbar.Slot Navbar.ui state.pages $ HE.input HandleNavbar
       , viewPage state.currentPage
       ]
 
-  viewPage "Sessions" = slot' pathToSessions Sessions.Slot Sessions.ui unit absurd
+  viewPage "Sessions" = slot' pathToSessions Sessions.Slot Sessions.ui Sessions.initial absurd
   viewPage "Draw"     = slot' pathToDraw     Draw.Slot     Draw.ui     unit absurd
   viewPage "Chat"     = slot' pathToChat     Chat.Slot     Chat.ui     "" $ HE.input HandleChat
   viewPage _          = div_ [ text "Du är hemma" ]
 
-  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (LoginEff e)
+  eval :: Input ~> ParentDSL State Input ChildQuery ChildSlot Output (RouterAff e)
   eval (Goto Home next) = do
     modify (_ { currentPage = "Home" })
     pure next
@@ -95,7 +101,7 @@ ui = parentComponent { initialState: const initial, render, eval, receiver: cons
   eval (HandleNavbar (Navbar.SetPage page) next) = pure next
   eval (HandleNavbar (Navbar.GotToken token) next) = do
     modify \state -> state
-      { pages = state.pages `snoc` "Draw" }
+      { pages = state.pages `snoc` "Sessions" }
     raise $ OutputMessage token
     pure next
 

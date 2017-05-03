@@ -27,7 +27,7 @@ instance encodeJsonCred :: EncodeJson Cred where
 derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
-type LoginEff e = Aff (ajax :: AJAX | e)
+type LoginAff e = Aff (ajax :: AJAX | e)
 
 type State =
   { username :: String
@@ -49,7 +49,7 @@ data Output
   = GotToken String
 
 
-ui :: forall e. Component HTML Input Unit Output (LoginEff e)
+ui :: forall e. Component HTML Input Unit Output (LoginAff e)
 ui = component { initialState: const initial, render, eval, receiver: const Nothing }
   where
   initial = { username: ""
@@ -90,7 +90,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
             ] [ text "Logga ut " ] ]
 
 
-  eval :: Input ~> ComponentDSL State Input Output (LoginEff e)
+  eval :: Input ~> ComponentDSL State Input Output (LoginAff e)
   eval (UpdateUsername text next) = do
     modify (_ { username = text })
     pure next
@@ -124,6 +124,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
       StatusCode _ ->
         pure unit
     pure next
+
 
 logoutUrl :: String
 logoutUrl = restUrl <> "/api/logout"

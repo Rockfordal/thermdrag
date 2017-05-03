@@ -6,13 +6,20 @@ import Data.Maybe (Maybe(Nothing))
 import Halogen (Component, component, get, put, raise)
 import Halogen.Component (ComponentDSL)
 import Halogen.HTML (HTML, button, text)
-import Prelude (type (~>), Unit, bind, not, ($), discard, pure, const)
+import Halogen.HTML.Properties (class_)
+import Halogen.Themes.Bootstrap3 (btn)
+import Prelude (class Eq, class Ord, type (~>), Unit, bind, const, discard, not, pure, ($))
+
+derive instance eqSlot  :: Eq Slot
+derive instance ordSlot :: Ord Slot
 
 type State = Boolean
 
 data Input a
   = Toggle a
   | IsOn (Boolean -> a)
+
+data Slot = Slot
 
 data Output = NewState Boolean
 
@@ -27,6 +34,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
     in button
       [ HP.title label
       , HE.onClick (HE.input_ Toggle)
+      , class_ btn
       ] [ text label ]
 
   eval :: Input ~> ComponentDSL State Input Output e
@@ -37,6 +45,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
       put newstate
       raise $ NewState newstate
       pure next
+
     IsOn reply -> do
       state <- get
       pure $ reply state

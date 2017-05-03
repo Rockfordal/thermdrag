@@ -12,13 +12,13 @@ cidr :: String
 cidr = hostname <> ":" <> port
 
 hostname :: String
-hostname = localhost
+hostname = local
 
 port :: String
 port = "8081"
 
-localhost :: String
-localhost = "localhost"
+local :: String
+local = "localhost"
 
 fire :: String
 fire = "46.162.127.62"

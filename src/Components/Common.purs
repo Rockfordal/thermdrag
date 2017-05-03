@@ -2,7 +2,12 @@ module Components.Common where
 
 import Control.Monad.Aff (Aff)
 import Control.Monad.Aff.Class (class MonadAff, liftAff)
+import Control.Monad.Eff (Eff)
 import Control.Monad.Except (runExcept)
+import DOM (DOM)
+import DOM.HTML (window)
+import DOM.HTML.Window (sessionStorage)
+import DOM.WebStorage.Storage (Storage)
 import Data.Either (Either(Left))
 import Data.Foreign (Foreign, ForeignError, readString)
 import Data.Foreign.Index (readProp)
@@ -14,7 +19,7 @@ import Network.HTTP.Affjax (AJAX, AffjaxResponse, affjax, defaultRequest, post)
 import Network.HTTP.Affjax.Request (class Requestable)
 import Network.HTTP.Affjax.Response (class Respondable)
 import Network.HTTP.RequestHeader (RequestHeader(ContentType, RequestHeader))
-import Prelude (class Bind, ($), (<>), (=<<))
+import Prelude (class Bind, bind, pure, ($), (<>), (=<<))
 
 type Ajax' e = (ajax :: AJAX | e)
 
@@ -42,3 +47,10 @@ getit jwt url =
 parseResponse :: String -> Foreign -> Either (NonEmptyList ForeignError) String
 parseResponse prop f =
   runExcept $ readString =<< readProp prop f
+
+
+getSessionDb :: forall e. Eff (dom :: DOM | e) Storage
+getSessionDb = do
+  w <- window
+  s <- sessionStorage w
+  pure s
