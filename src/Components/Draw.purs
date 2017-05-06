@@ -13,11 +13,8 @@ derive instance eqSlot  :: Eq Slot
 derive instance ordSlot :: Ord Slot
 
 type DSL e = ComponentDSL State Input Void e
-
 type State = { on :: Boolean }
-
 data Input a = ToggleState a
-
 data Slot = Slot
 
 

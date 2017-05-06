@@ -48,7 +48,7 @@ parseResponse :: String -> Foreign -> Either (NonEmptyList ForeignError) String
 parseResponse prop f =
   runExcept $ readString =<< readProp prop f
 
-getSessionDb :: Eff (dom :: DOM) Storage
+getSessionDb :: forall e. Eff (dom :: DOM | e) Storage
 getSessionDb = do
   w <- window
   s <- sessionStorage w
