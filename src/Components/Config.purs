@@ -1,12 +1,14 @@
-module Components.Config where
+module Components.Config (wsUrl, restUrl) where
 
 import Prelude ((<>))
+
 
 wsUrl :: String
 wsUrl = "ws://" <> cidr
 
 restUrl :: String
 restUrl  = "http://" <> cidr
+
 
 cidr :: String
 cidr = hostname <> ":" <> port

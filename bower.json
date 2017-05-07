@@ -21,7 +21,8 @@
     "purescript-media-types": "^3.0.0",
     "purescript-argonaut-codecs": "^3.0.1",
     "purescript-halogen-bootstrap": "^6.0.0",
-    "purescript-routing": "^5.1.0"
+    "purescript-routing": "^5.1.0",
+    "purescript-colors": "3.0.0"
   },
   "devDependencies": {}
 }

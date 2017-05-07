@@ -27,7 +27,7 @@ import Routing.Match (Match)
 import Routing.Match.Class (lit, num)
 
 type RouterAff e = Aff (ajax :: AJAX, dom :: DOM | e)
-
+type HalAff e = Aff (HalogenEffects e)
 type DSL e = ParentDSL State Input ChildQuery ChildSlot Output (RouterAff e)
 
 type QueryP     = Coproduct  Input ChildQuery
@@ -130,15 +130,12 @@ pathToSessions :: ChildPath Sessions.Input ChildQuery Sessions.Slot ChildSlot
 pathToSessions = cp4
 
 
-routeSignal :: forall e. HalogenIO Input Output
-                         (Aff (HalogenEffects e))
-                       -> Aff (HalogenEffects e) Unit
+routeSignal :: forall e. HalogenIO Input Output (HalAff e) -> (HalAff e) Unit
 routeSignal driver = do
   Tuple old new <- matchesAff routing
   redirects driver old new
 
 
-redirects :: forall e. HalogenIO Input Output (Aff (HalogenEffects e))
-                  -> Maybe Routes -> Routes -> Aff (HalogenEffects e) Unit
+redirects :: forall e. HalogenIO Input Output (HalAff e) -> Maybe Routes -> Routes -> (HalAff e) Unit
 redirects driver _ =
   Goto >>> action >>> driver.query
