@@ -95,56 +95,56 @@ printCommand (A rx ry rot large sweep x y) =
   sweep_flag = if sweep then "0" else "1"
 printCommand Z = {command: "z", params: ""}
 
-attr :: forall r i. AttrName -> String -> IProp r i
+attr :: ∀ r i. AttrName -> String -> IProp r i
 attr = coe Core.attr
   where
     coe :: (AttrName -> String -> Prop i) -> AttrName -> String -> IProp r i
     coe = unsafeCoerce
 
-cx :: forall r i. Number -> IProp (cx :: Number | r) i
+cx :: ∀ r i. Number -> IProp (cx :: Number | r) i
 cx = attr (AttrName "cx") <<< show
 
-cy :: forall r i. Number -> IProp (cy :: Number | r) i
+cy :: ∀ r i. Number -> IProp (cy :: Number | r) i
 cy = attr (AttrName "cy") <<< show
 
-r :: forall s i. Number -> IProp (r :: Number | s) i
+r :: ∀ s i. Number -> IProp (r :: Number | s) i
 r = attr (AttrName "r") <<< show
 
-viewBox :: forall r i. Number -> Number -> Number -> Number -> IProp (viewBox :: String | r) i
+viewBox :: ∀ r i. Number -> Number -> Number -> Number -> IProp (viewBox :: String | r) i
 viewBox x y w h = attr (AttrName "viewBox") (joinWith " " $ map show [x, y, w, h])
 
-rx :: forall r i. Number -> IProp (rx :: Number | r) i
+rx :: ∀ r i. Number -> IProp (rx :: Number | r) i
 rx = attr (AttrName "rx") <<< show
 
-ry :: forall r i. Number -> IProp (ry :: Number | r) i
+ry :: ∀ r i. Number -> IProp (ry :: Number | r) i
 ry = attr (AttrName "ry") <<< show
 
-width :: forall r i. Number -> IProp (width :: Number | r) i
+width :: ∀ r i. Number -> IProp (width :: Number | r) i
 width = attr (AttrName "width") <<< show
 
-height :: forall r i. Number -> IProp (height :: Number | r) i
+height :: ∀ r i. Number -> IProp (height :: Number | r) i
 height = attr (AttrName "height") <<< show
 
-x :: forall r i. Number -> IProp (x :: Number | r) i
+x :: ∀ r i. Number -> IProp (x :: Number | r) i
 x = attr (AttrName "x") <<< show
 
-y :: forall r i. Number -> IProp (y :: Number | r) i
+y :: ∀ r i. Number -> IProp (y :: Number | r) i
 y = attr (AttrName "y") <<< show
 
-stroke :: forall r i. Maybe Color -> IProp (stroke :: String | r) i
+stroke :: ∀ r i. Maybe Color -> IProp (stroke :: String | r) i
 stroke = attr (AttrName "stroke") <<< printColor
 
-fill :: forall r i. Maybe Color -> IProp (fill :: String | r) i
+fill :: ∀ r i. Maybe Color -> IProp (fill :: String | r) i
 fill = attr (AttrName "fill") <<< printColor
 
-transform :: forall r i . Array Transform -> IProp (transform :: String | r) i
+transform :: ∀ r i . Array Transform -> IProp (transform :: String | r) i
 transform = attr (AttrName "transform") <<< joinWith " " <<< map printTransform
 
-d :: forall r i . Array D -> IProp (d :: String | r) i
+d :: ∀ r i . Array D -> IProp (d :: String | r) i
 d = attr (AttrName "d") <<< joinWith " " <<< map printD
 
-text_anchor :: forall r i . TextAnchor -> IProp (text_anchor :: String | r) i
+text_anchor :: ∀ r i . TextAnchor -> IProp (text_anchor :: String | r) i
 text_anchor = attr (AttrName "text-anchor") <<< printTextAnchor
 
-dominant_baseline :: forall r i . Baseline -> IProp (transform :: String | r) i
+dominant_baseline :: ∀ r i . Baseline -> IProp (transform :: String | r) i
 dominant_baseline = attr (AttrName "dominant-baseline") <<< printBaseline

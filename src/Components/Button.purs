@@ -26,8 +26,8 @@ data Slot = Slot
 data Output = NewState Boolean
 
 
-ui :: forall e. Component HTML Input Unit Output e -- (Reader GlobalState IO)
-ui = component { initialState: const initial, render, eval, receiver: const Nothing }
+ui :: ∀ e. Component HTML Input Unit Output e
+ui = component { initialState: const initial, render, eval, receiver: const Nothing } -- TODO: (Reader GlobalState IO)
   where
   initial = false
 

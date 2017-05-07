@@ -28,18 +28,18 @@ data Output
   | GotToken String
 
 
-ui :: forall e. Component HTML Input State Output (Login.LoginAff e)
+ui :: ∀ e. Component HTML Input State Output (Login.LoginAff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: HE.input SetPages }
   where
   initial = [""]
 
   render state =
-    nav [ classes [ B.navbarNav, B.navbarFixedTop, B.navbarInverse] ]
+    nav [ classes [ B.navbarNav, B.navbarFixedTop, B.navbarInverse ] ]
       [ container_
         [ a [ classes [ B.navbarBrand ]
             , href "#/Home"
             ] [ text "SuperChat" ]
-        , ul [ classes [ B.navbarNav, B.nav, B.navTabs] ]
+        , ul [ classes [ B.navbarNav, B.nav, B.navTabs ] ]
           $ map navlink state
         , slot Login.Slot Login.ui unit $ HE.input HandleLogin
         ]

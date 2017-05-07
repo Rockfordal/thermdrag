@@ -61,7 +61,7 @@ sampleCircles = do
   mm = (\n -> 30 + n * 70 )
 
 
-ui :: forall e. Component HTML Input Unit Void e
+ui :: ∀ e. Component HTML Input Unit Void e
 ui = component { initialState: const initial, render, eval, receiver: const Nothing }
   where
   initial = { on: false, drag: Nothing, circles: sampleCircles }
@@ -157,7 +157,7 @@ ui = component { initialState: const initial, render, eval, receiver: const Noth
     pure next
 
 
--- x :: forall t1 t2. HTML t2 t1
+-- x :: ∀ t1 t2. HTML t2 t1
 -- linje :: Int -> Int -> Int -> Int -> element
 -- linje x1 y1 x2 y2 =
 --   line

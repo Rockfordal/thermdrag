@@ -59,7 +59,7 @@ data Output
   = OutputMessage String
 
 
-ui :: forall e. Component HTML Input Unit Output (RouterAff e)
+ui :: ∀ e. Component HTML Input Unit Output (RouterAff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: const Nothing }
   where
   initial =
@@ -130,12 +130,12 @@ pathToSessions :: ChildPath Sessions.Input ChildQuery Sessions.Slot ChildSlot
 pathToSessions = cp4
 
 
-routeSignal :: forall e. HalogenIO Input Output (HalAff e) -> (HalAff e) Unit
+routeSignal :: ∀ e. HalogenIO Input Output (HalAff e) -> (HalAff e) Unit
 routeSignal driver = do
   Tuple old new <- matchesAff routing
   redirects driver old new
 
 
-redirects :: forall e. HalogenIO Input Output (HalAff e) -> Maybe Routes -> Routes -> (HalAff e) Unit
+redirects :: ∀ e. HalogenIO Input Output (HalAff e) -> Maybe Routes -> Routes -> (HalAff e) Unit
 redirects driver _ =
   Goto >>> action >>> driver.query

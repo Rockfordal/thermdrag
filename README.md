@@ -4,7 +4,7 @@
 
 * Purescript
 * Webpack 2
-* Hot Code Reloading with Purs-loader 
+* Hot Code Reloading with Purs-loader
 * Halogen
 
 Components:
@@ -18,6 +18,10 @@ Sessions  - from parsonsmatts routing example just to illustrate that routing wo
 _The chat is using the chatqy Haskell Servant project as ajax, websocket server
 
 _Im using Visual Studio Code, Purescript 0.11.4 built from source, and the font Hack
+
+![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/colors.png)
+
+![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/chat1.png)
 
 ![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/chat1.png)
 

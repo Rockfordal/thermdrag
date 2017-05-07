@@ -50,7 +50,7 @@ data Slot = Slot
 data Output = GotToken String
 
 
-ui :: forall e. Component HTML Input Unit Output (LoginAff e)
+ui :: ∀ e. Component HTML Input Unit Output (LoginAff e)
 ui = component { initialState: const initial, render, eval, receiver: const Nothing }
   where
   initial = { username: ""

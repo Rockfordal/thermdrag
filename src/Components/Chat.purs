@@ -49,7 +49,7 @@ data Slot = Slot
 data Output = OutputMessage String
 
 
-ui :: forall e. Component HTML Input String Output (AjaxEff e)
+ui :: ∀ e. Component HTML Input String Output (AjaxEff e)
 ui = component { initialState: const initial, render, eval, receiver: HE.input UpdateInputText }
   where
   initial = { messages: []

@@ -25,7 +25,7 @@ type WsAff e  = Aff (avar :: AVAR, ws :: WS.WEBSOCKET, ajax :: AJAX, err :: EXCE
 
 
 -- Producer coroutine emits messages that arrives from websocket.
-wsProducer :: forall e . WS.Connection -> Producer String (WsAff e) Unit
+wsProducer :: ∀ e . WS.Connection -> Producer String (WsAff e) Unit
 wsProducer (WS.Connection socket) =
   produce \emit -> do
       socket.onmessage $= \event -> do
@@ -34,7 +34,7 @@ wsProducer (WS.Connection socket) =
 
 -- Consumer coroutine takes the `query` function from our component IO
 -- record and sends `AddMessage` queries in when it receives inputs from producer
-wsConsumer :: forall e. (Router.Input ~> HalAff e) -> Consumer String (HalAff e) Unit
+wsConsumer :: ∀ e. (Router.Input ~> HalAff e) -> Consumer String (HalAff e) Unit
 wsConsumer query =
   consumer \msg -> do
     query $ action $ Router.IncomingMessage msg
@@ -42,7 +42,7 @@ wsConsumer query =
 
 
 -- Consumer coroutine takes output messages from our component IO, sends with websocket
-wsSender :: WS.Connection -> Consumer Router.Output (Aff (HalEff_)) Unit -- forall e (HalEffp e)
+wsSender :: WS.Connection -> Consumer Router.Output (Aff (HalEff_)) Unit -- ∀ e (HalEffp e)
 wsSender (WS.Connection socket) = consumer \msg -> do
   case msg of
     Router.OutputMessage msgContents -> do
@@ -66,4 +66,3 @@ containerapp = do
     -- Connectiong consumer to producer
     -- Both will be initialized
     runProcess (wsProducer conn $$ wsConsumer io.query)
-

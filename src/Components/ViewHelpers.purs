@@ -10,15 +10,15 @@ import Halogen.HTML.Properties (class_, href)
 import Prelude ((<>))
 
 
-container :: forall p i. Node HTMLdiv p i
+container :: ∀ p i. Node HTMLdiv p i
 container attrs =
   div (class_ B.container : attrs)
 
-container_ :: forall p i. Array (HTML p i) -> HTML p i
+container_ :: ∀ p i. Array (HTML p i) -> HTML p i
 container_ =
   container []
 
-navlink :: forall p i. String -> HTML p i
+navlink :: ∀ p i. String -> HTML p i
 navlink s =
   li_ [ a [ href ("#/" <> toLower s) ]
     [ text s ] ]

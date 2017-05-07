@@ -39,7 +39,7 @@ data Slot = Slot
 initial :: State
 initial = { knapp: false, antal: 0, saved: "0" }
 
-ui :: forall e. Component HTML Input State Void (DomAff e)
+ui :: ∀ e. Component HTML Input State Void (DomAff e)
 ui = parentComponent { initialState: const initial, render, eval, receiver: const Nothing }
   where
   render state =
