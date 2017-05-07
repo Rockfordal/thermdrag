@@ -21,7 +21,7 @@ _Im using Visual Studio Code, Purescript 0.11.4 built from source, and the font 
 
 ![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/colors.png)
 
-![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/chat1.png)
+![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/navbarcode.png)
 
 ![alt tag](https://raw.githubusercontent.com/Rockfordal/thermdrag/halogen/images/chat1.png)
 
